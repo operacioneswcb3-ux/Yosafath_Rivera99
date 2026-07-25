@@ -1,64 +1,129 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="h-full">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>App Móvil de Piloto - Mensajería Express</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  
+  <!-- Configuración PWA / Modo App Nativa (Elimina Barra de Navegación) -->
+  <title>Piloto Express App</title>
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Piloto App" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="application-name" content="Piloto Express" />
+
+  <!-- App Icon -->
+  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2830/2830305.png" />
+  <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/2830/2830305.png" />
+
+  <!-- Data URI Manifest para instalación independiente en 1 solo archivo -->
+  <link rel="manifest" href='data:application/manifest+json,{
+    "name": "Piloto Express - Mensajería",
+    "short_name": "Piloto App",
+    "description": "App de entregas para pilotos",
+    "start_url": "./",
+    "display": "standalone",
+    "background_color": "#0f172a",
+    "theme_color": "#0f172a",
+    "orientation": "portrait",
+    "icons": [
+      {
+        "src": "https://cdn-icons-png.flaticon.com/512/2830/2830305.png",
+        "sizes": "192x192",
+        "type": "image/png",
+        "purpose": "any maskable"
+      },
+      {
+        "src": "https://cdn-icons-png.flaticon.com/512/2830/2830305.png",
+        "sizes": "512x512",
+        "type": "image/png"
+      }
+    ]
+  }' />
+
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  
   <style>
-    body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
-    /* Custom Scrollbar for sleek mobile experience */
-    ::-webkit-scrollbar { width: 4px; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    ::-webkit-scrollbar { width: 3px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-    .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(8px); }
+    ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
+    
+    .touch-active:active {
+      transform: scale(0.98);
+      opacity: 0.9;
+    }
   </style>
 </head>
-<body class="bg-slate-900 font-sans text-gray-800 min-h-screen flex items-center justify-center p-0 md:p-4 selection:bg-emerald-500 selection:text-white">
+<body class="bg-slate-950 font-sans text-gray-800 h-full overflow-hidden flex flex-col justify-center items-center">
 
-  <!-- Mobile Simulator Frame -->
-  <div class="w-full max-w-md bg-gray-100 rounded-none md:rounded-[32px] shadow-2xl overflow-hidden border-0 md:border-[8px] border-slate-800 flex flex-col h-screen md:h-[860px] relative">
-    
-    <!-- Top Bar / Status Header -->
-    <div class="bg-slate-900 text-white px-5 pt-3 pb-2 flex justify-between items-center text-xs border-b border-slate-800 z-10 shrink-0">
+  <!-- Mobile Container: Full Screen in Mobile Devices, Device Frame in Desktop -->
+  <div class="w-full max-w-md h-[100dvh] md:h-[860px] bg-gray-100 md:rounded-[36px] shadow-2xl overflow-hidden border-0 md:border-[8px] border-slate-800 flex flex-col relative">
+
+    <!-- Top Status Header (Native Header Style) -->
+    <div class="bg-slate-900 text-white px-4 pt-3 pb-2.5 flex justify-between items-center text-xs border-b border-slate-800 shrink-0 select-none">
       <div class="flex items-center gap-2">
         <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-        <span id="route-title" class="font-bold tracking-wide text-emerald-400">RUTA 04 - SAN PEDRO</span>
+        <span id="route-title" class="font-black tracking-wide text-emerald-400 uppercase text-[11px]">RUTA 04 - SAN PEDRO</span>
       </div>
-      <div class="flex items-center gap-3 text-slate-400">
-        <button onclick="openConfigModal()" title="Configurar Google Sheets" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-2 py-1 rounded border border-slate-700 flex items-center gap-1 transition">
+      <div class="flex items-center gap-2.5 text-slate-400">
+        <button onclick="openConfigModal()" title="Configurar Google Sheets" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-200 px-2 py-1 rounded-lg border border-slate-700 flex items-center gap-1 transition touch-active">
           <i class="fa-solid fa-file-excel text-emerald-400"></i>
           <span id="sync-badge-text">Sheet</span>
         </button>
-        <span id="network-status" title="Estado de Red"><i class="fa-solid fa-wifi text-emerald-400"></i></span>
-        <span><i class="fa-solid fa-battery-three-quarters text-emerald-400"></i> 90%</span>
+        <button onclick="openPwaInstallModal()" class="text-[11px] bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 px-2 py-1 rounded-lg flex items-center gap-1 font-bold touch-active">
+          <i class="fa-solid fa-mobile-screen-button"></i>
+          <span>App</span>
+        </button>
       </div>
     </div>
 
+    <!-- PWA Install Banner prompt (Shows if opened inside browser) -->
+    <div id="pwa-install-banner" class="hidden bg-gradient-to-r from-amber-500 to-orange-600 text-white p-2.5 px-3 flex justify-between items-center text-xs shadow-md shrink-0 border-b border-orange-600/50">
+      <div class="flex items-center gap-2">
+        <i class="fa-solid fa-circle-arrow-down text-lg animate-bounce"></i>
+        <div>
+          <p class="font-extrabold leading-tight">¡Instala la App en tu pantalla!</p>
+          <p class="text-[10px] opacity-90">Elimina la barra de navegación web</p>
+        </div>
+      </div>
+      <button onclick="openPwaInstallModal()" class="bg-white text-orange-700 font-black px-2.5 py-1 rounded-lg text-[11px] shadow touch-active">
+        Instalar
+      </button>
+    </div>
+
     <!-- Driver Info Header -->
-    <div class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-4 shadow-md shrink-0 border-b border-slate-700">
-      <div class="flex justify-between items-center mb-2">
+    <div class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-4 shadow-md shrink-0 border-b border-slate-700/80">
+      <div class="flex justify-between items-center mb-1.5">
         <div>
           <h1 class="font-extrabold text-base tracking-tight text-white flex items-center gap-2">
             <span id="driver-name-display">Mario Rodríguez</span>
             <span id="driver-badge-display" class="bg-emerald-500/20 text-emerald-300 text-[10px] px-2 py-0.5 rounded-full border border-emerald-500/30">T-02</span>
-            <button onclick="openPilotoModal()" title="Cambiar Piloto / Ruta" class="text-slate-400 hover:text-emerald-400 text-xs ml-1 bg-slate-800 p-1.5 rounded-lg border border-slate-700 transition">
+            <button onclick="openPilotoModal()" title="Cambiar Piloto / Ruta" class="text-slate-300 hover:text-emerald-400 text-xs bg-slate-800 p-1.5 rounded-lg border border-slate-700 transition touch-active">
               <i class="fa-solid fa-user-gear"></i>
             </button>
           </h1>
           <p id="driver-route-display" class="text-xs text-slate-400">Piloto Asignado | San Pedro Sula</p>
         </div>
         <div class="text-right">
-          <span id="date-display" class="text-xs font-semibold text-slate-300 bg-slate-800/80 px-2.5 py-1 rounded-lg border border-slate-700"></span>
+          <span id="date-display" class="text-[11px] font-bold text-slate-300 bg-slate-800/90 px-2.5 py-1 rounded-lg border border-slate-700"></span>
         </div>
       </div>
 
       <!-- Route Progress & Metrics -->
-      <div class="mt-3 bg-slate-800/60 p-3 rounded-xl border border-slate-700/60">
+      <div class="mt-3 bg-slate-800/70 p-3 rounded-2xl border border-slate-700/60">
         <div class="flex justify-between text-xs mb-1.5 font-semibold">
-          <span class="text-slate-300">Progreso de la Ruta</span>
+          <span class="text-slate-300">Progreso de Entregas</span>
           <span id="progress-text" class="text-emerald-400 font-bold">0 / 0 (0%)</span>
         </div>
         <div class="w-full bg-slate-700/80 h-2.5 rounded-full overflow-hidden p-0.5">
@@ -67,53 +132,105 @@
 
         <!-- COD Cash Collected Summary -->
         <div class="mt-2.5 pt-2 border-t border-slate-700/50 flex justify-between items-center text-xs">
-          <span class="text-slate-400 flex items-center gap-1">
-            <i class="fa-solid fa-money-bill-wave text-amber-400"></i> Efectivo Cobrado COD:
+          <span class="text-slate-400 flex items-center gap-1 font-medium">
+            <i class="fa-solid fa-money-bill-wave text-amber-400"></i> Efectivo Cobrado (COD):
           </span>
-          <span id="total-cod-collected" class="font-extrabold text-amber-400 text-sm">L. 0.00</span>
+          <span id="total-cod-collected" class="font-black text-amber-400 text-sm">L. 0.00</span>
         </div>
       </div>
     </div>
 
     <!-- Search & Quick Filters -->
-    <div class="bg-white border-b border-gray-200 p-2 shadow-sm shrink-0 space-y-2">
+    <div class="bg-white border-b border-gray-200 p-2.5 shadow-sm shrink-0 space-y-2">
       <!-- Search Input -->
       <div class="relative">
         <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-gray-400 text-xs"></i>
         <input type="text" id="search-input" onkeyup="handleSearch()" placeholder="Buscar por guía, cliente o dirección..." 
-               class="w-full pl-8 pr-8 py-1.5 text-xs bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:bg-white outline-none transition">
+               class="w-full pl-8 pr-8 py-2 text-xs bg-gray-100 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:bg-white outline-none transition">
         <button onclick="clearSearch()" id="btn-clear-search" class="hidden absolute right-2.5 top-2 text-gray-400 hover:text-gray-600 text-xs">&times;</button>
       </div>
 
       <!-- Filter Tabs -->
-      <div class="flex bg-gray-100 p-1 rounded-lg gap-1 text-[11px] font-bold text-gray-600">
-        <button onclick="filterPackages('todos')" id="btn-todos" class="flex-1 py-1.5 rounded-md bg-white text-emerald-700 shadow-sm transition">TODOS (<span id="count-todos">0</span>)</button>
-        <button onclick="filterPackages('pendiente')" id="btn-pendiente" class="flex-1 py-1.5 rounded-md hover:bg-white/50 transition">PEND. (<span id="count-pendiente">0</span>)</button>
-        <button onclick="filterPackages('entregado')" id="btn-entregado" class="flex-1 py-1.5 rounded-md hover:bg-white/50 transition">ÉXITO (<span id="count-entregado">0</span>)</button>
-        <button onclick="filterPackages('incidencia')" id="btn-incidencia" class="flex-1 py-1.5 rounded-md hover:bg-white/50 transition">FALLO (<span id="count-incidencia">0</span>)</button>
+      <div class="flex bg-gray-100 p-1 rounded-xl gap-1 text-[11px] font-bold text-gray-600">
+        <button onclick="filterPackages('todos')" id="btn-todos" class="flex-1 py-1.5 rounded-lg bg-white text-emerald-700 shadow-sm transition">TODOS (<span id="count-todos">0</span>)</button>
+        <button onclick="filterPackages('pendiente')" id="btn-pendiente" class="flex-1 py-1.5 rounded-lg hover:bg-white/50 transition">PEND. (<span id="count-pendiente">0</span>)</button>
+        <button onclick="filterPackages('entregado')" id="btn-entregado" class="flex-1 py-1.5 rounded-lg hover:bg-white/50 transition">ÉXITO (<span id="count-entregado">0</span>)</button>
+        <button onclick="filterPackages('incidencia')" id="btn-incidencia" class="flex-1 py-1.5 rounded-lg hover:bg-white/50 transition">FALLO (<span id="count-incidencia">0</span>)</button>
       </div>
     </div>
 
     <!-- Main Package List Area -->
     <div id="package-list" class="flex-1 overflow-y-auto p-3 space-y-3 bg-slate-100">
-      <!-- Package Cards loaded dynamically via JS -->
+      <!-- Cards rendered via JS -->
     </div>
 
-    <!-- Bottom Quick Action Bar / Settlement Modal Trigger -->
+    <!-- Bottom Action Bar / Settlement Modal Trigger -->
     <div class="bg-white border-t border-gray-200 p-3 flex justify-between items-center shrink-0 z-10 shadow-lg">
-      <button onclick="syncDataWithSheets()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow transition">
+      <button onclick="syncDataWithSheets()" class="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold flex items-center gap-2 shadow transition touch-active">
         <i class="fa-solid fa-rotate text-emerald-400" id="sync-icon"></i>
         <span>Sincronizar</span>
       </button>
 
-      <button onclick="openCierreModal()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-extrabold flex items-center gap-2 shadow-md transition">
-        <i class="fa-solid fa-file-invoice-dollar"></i>
+      <button onclick="openCierreModal()" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-extrabold flex items-center gap-2 shadow-md transition touch-active">
+        <i class="fa-solid fa-file-invoice-dollar text-sm"></i>
         <span>Cierre de Caja</span>
       </button>
     </div>
 
+    <!-- ==================== MODAL: INSTRUCCIONES INSTALACIÓN PWA ==================== -->
+    <div id="modal-pwa" class="hidden fixed inset-0 bg-slate-900/80 z-50 flex items-end md:items-center justify-center backdrop-blur-xs p-0 md:p-4">
+      <div class="bg-white w-full max-w-md rounded-t-3xl md:rounded-3xl p-5 space-y-4 max-h-[90vh] overflow-y-auto shadow-2xl border-t border-gray-200">
+        
+        <div class="flex justify-between items-center border-b pb-3">
+          <div class="flex items-center gap-2">
+            <div class="w-9 h-9 rounded-xl bg-emerald-500 text-white flex items-center justify-center font-black text-lg">
+              <i class="fa-solid fa-mobile-screen"></i>
+            </div>
+            <div>
+              <h3 class="font-black text-base text-slate-800">Instalar como App Nativa</h3>
+              <p class="text-[11px] text-slate-500">Oculta la barra de Chrome/Safari</p>
+            </div>
+          </div>
+          <button onclick="closeModal('modal-pwa')" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 font-bold flex items-center justify-center text-lg">&times;</button>
+        </div>
+
+        <div class="space-y-3 text-xs text-slate-700">
+          <p class="font-medium leading-relaxed bg-emerald-50 text-emerald-900 p-3 rounded-xl border border-emerald-200">
+            Sigue estos pasos rápidos en tu teléfono para abrir esta pantalla como una aplicación real sin bordes ni barra web:
+          </p>
+
+          <div class="border rounded-xl p-3 space-y-2 bg-slate-50">
+            <p class="font-extrabold text-slate-900 flex items-center gap-2">
+              <i class="fa-brands fa-android text-emerald-600 text-sm"></i> En Android (Chrome / Edge):
+            </p>
+            <ol class="list-decimal list-inside space-y-1 text-[11px] text-slate-600 pl-1">
+              <li>Toca el menú de <strong>3 puntos (⋮)</strong> en la esquina superior derecha del navegador.</li>
+              <li>Selecciona <strong>"Agregar a la pantalla principal"</strong> o <strong>"Instalar aplicación"</strong>.</li>
+              <li>Acepta y abre el nuevo ícono creado en tu menú de aplicaciones.</li>
+            </ol>
+          </div>
+
+          <div class="border rounded-xl p-3 space-y-2 bg-slate-50">
+            <p class="font-extrabold text-slate-900 flex items-center gap-2">
+              <i class="fa-brands fa-apple text-slate-800 text-sm"></i> En iPhone (Safari):
+            </p>
+            <ol class="list-decimal list-inside space-y-1 text-[11px] text-slate-600 pl-1">
+              <li>Toca el botón <strong>Compartir <i class="fa-solid fa-share-from-square"></i></strong> en el menú de Safari.</li>
+              <li>Desplaza hacia abajo y elige <strong>"Agregar a inicio" <i class="fa-solid fa-plus-square"></i></strong>.</li>
+              <li>Confirma y abre la App desde la pantalla de inicio.</li>
+            </ol>
+          </div>
+        </div>
+
+        <button onclick="closeModal('modal-pwa')" class="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs rounded-xl shadow">
+          Entendido
+        </button>
+      </div>
+    </div>
+
+
     <!-- ==================== MODAL: LIQUIDAR ENTREGA ==================== -->
-    <div id="modal-entrega" class="hidden fixed inset-0 bg-slate-900/80 z-50 flex items-end justify-center backdrop-blur-xs transition-opacity">
+    <div id="modal-entrega" class="hidden fixed inset-0 bg-slate-900/80 z-50 flex items-end justify-center backdrop-blur-xs">
       <div class="bg-white w-full max-w-md rounded-t-3xl p-5 space-y-4 max-h-[92vh] overflow-y-auto shadow-2xl border-t border-gray-200">
         
         <div class="flex justify-between items-center border-b pb-3">
@@ -168,25 +285,10 @@
           </div>
         </div>
 
-        <!-- Foto de Evidencia -->
-        <div>
-          <label class="text-xs font-extrabold text-gray-700 block mb-1">Foto de Evidencia / Paquete en destino (Opcional)</label>
-          <div class="flex items-center gap-3">
-            <label class="flex-1 py-2.5 px-3 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-xl cursor-pointer text-center text-xs font-bold text-slate-700 flex items-center justify-center gap-2 transition">
-              <i class="fa-solid fa-camera text-slate-500"></i>
-              <span>Tomar / Subir Foto</span>
-              <input type="file" id="foto-entrega-input" accept="image/*" capture="environment" onchange="previewPhoto(event, 'preview-entrega-container')" class="hidden">
-            </label>
-          </div>
-          <div id="preview-entrega-container" class="mt-2 hidden relative rounded-xl overflow-hidden border border-gray-200 max-h-36 bg-black flex items-center justify-center">
-            <!-- Image preview rendered here -->
-          </div>
-        </div>
-
         <!-- Action Buttons -->
         <div class="pt-2 flex gap-2">
           <button type="button" onclick="closeModal('modal-entrega')" class="w-1/3 py-3 bg-gray-100 hover:bg-gray-200 font-bold text-xs text-gray-700 rounded-xl">Cancelar</button>
-          <button type="button" onclick="confirmarEntrega()" class="w-2/3 py-3 bg-emerald-600 hover:bg-emerald-700 font-extrabold text-xs text-white rounded-xl shadow-lg flex items-center justify-center gap-2">
+          <button type="button" onclick="confirmarEntrega()" class="w-2/3 py-3 bg-emerald-600 hover:bg-emerald-700 font-extrabold text-xs text-white rounded-xl shadow-lg flex items-center justify-center gap-2 touch-active">
             <i class="fa-solid fa-circle-check"></i> CONFIRMAR ENTREGA
           </button>
         </div>
@@ -239,22 +341,9 @@
                     class="w-full p-2.5 text-xs bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 outline-none mt-1"></textarea>
         </div>
 
-        <!-- Foto Evidencia Incidencia -->
-        <div>
-          <label class="text-xs font-extrabold text-gray-700 block mb-1">Foto de Evidencia / Fachada (Obligatoria)</label>
-          <label class="w-full py-2.5 px-3 bg-red-50 hover:bg-red-100 border border-red-200 rounded-xl cursor-pointer text-center text-xs font-bold text-red-700 flex items-center justify-center gap-2 transition">
-            <i class="fa-solid fa-camera"></i>
-            <span>Tomar Foto de Fachada</span>
-            <input type="file" id="foto-incidencia-input" accept="image/*" capture="environment" onchange="previewPhoto(event, 'preview-incidencia-container')" class="hidden">
-          </label>
-          <div id="preview-incidencia-container" class="mt-2 hidden relative rounded-xl overflow-hidden border border-red-200 max-h-36 bg-black flex items-center justify-center">
-            <!-- Image preview rendered here -->
-          </div>
-        </div>
-
         <div class="pt-2 flex gap-2">
           <button type="button" onclick="closeModal('modal-incidencia')" class="w-1/3 py-3 bg-gray-100 font-bold text-xs text-gray-700 rounded-xl">Cancelar</button>
-          <button type="button" onclick="confirmarIncidencia()" class="w-2/3 py-3 bg-red-600 hover:bg-red-700 font-extrabold text-xs text-white rounded-xl shadow-lg flex items-center justify-center gap-2">
+          <button type="button" onclick="confirmarIncidencia()" class="w-2/3 py-3 bg-red-600 hover:bg-red-700 font-extrabold text-xs text-white rounded-xl shadow-lg flex items-center justify-center gap-2 touch-active">
             <i class="fa-solid fa-triangle-exclamation"></i> GUARDAR REPORTE
           </button>
         </div>
@@ -284,12 +373,12 @@
         </div>
 
         <div class="bg-blue-50 border border-blue-200 p-2.5 rounded-xl text-[11px] text-blue-800 space-y-1">
-          <p class="font-bold"><i class="fa-solid fa-circle-info"></i> ¿No tienes URL configurada?</p>
-          <p>No te preocupes. La app usará la base de datos simulada local para que puedas probar todo el flujo de trabajo sin inconvenientes.</p>
+          <p class="font-bold"><i class="fa-solid fa-circle-info"></i> Base local en teléfono</p>
+          <p>Si la URL está vacía, la app funciona completamente sin conexión guardando el progreso en el teléfono.</p>
         </div>
 
         <div class="flex gap-2 pt-2">
-          <button onclick="saveSheetConfig()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 font-bold text-xs text-white rounded-xl shadow">
+          <button onclick="saveSheetConfig()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 font-bold text-xs text-white rounded-xl shadow touch-active">
             Guardar Configuración
           </button>
         </div>
@@ -321,7 +410,7 @@
         </div>
 
         <div class="flex gap-2 pt-2">
-          <button onclick="switchPilot()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 font-bold text-xs text-white rounded-xl shadow">
+          <button onclick="switchPilot()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 font-bold text-xs text-white rounded-xl shadow touch-active">
             Ingresar a la Ruta
           </button>
         </div>
@@ -341,7 +430,7 @@
           <button onclick="closeModal('modal-cierre')" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 font-bold flex items-center justify-center text-lg">&times;</button>
         </div>
 
-        <!-- Drivers Summary Grid -->
+        <!-- Summary Grid -->
         <div class="grid grid-cols-2 gap-2 text-center text-xs">
           <div class="bg-emerald-50 border border-emerald-200 p-3 rounded-2xl">
             <span class="text-emerald-700 font-medium block">Entregados</span>
@@ -372,7 +461,7 @@
           </div>
         </div>
 
-        <button onclick="closeModal('modal-cierre')" class="w-full py-3 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl shadow">
+        <button onclick="closeModal('modal-cierre')" class="w-full py-3 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl shadow touch-active">
           Aceptar y Volver a la Ruta
         </button>
       </div>
@@ -402,98 +491,42 @@
       'T-03': { nombre: 'José Alvarado', badge: 'T-03', ruta: 'RUTA 02 - LA CEIBA', zona: 'La Ceiba' }
     };
 
-    // Initial mock data with assigned pilot IDs
     let packages = [
-      {
-        id: "G-88495",
-        pilotoId: "T-02",
-        cliente: "Comercial El Centro",
-        direccion: "Barrio Guamilito, 5 Calle 8 Ave, frente a Farmacia Simán",
-        telefono: "99887766",
-        monto: 450,
-        estado: "pendiente",
-        observaciones: "Preguntar por Ing. Roberto",
-        receptor: "",
-        dni: "",
-        motivo: "",
-        foto: null
-      },
-      {
-        id: "G-88496",
-        pilotoId: "T-02",
-        cliente: "Importadora X",
-        direccion: "Colonia Trejo, 21 Ave 11 Calle, Casa 204",
-        telefono: "88776655",
-        monto: 0,
-        estado: "pendiente",
-        observaciones: "Entregar en garita de seguridad",
-        receptor: "",
-        dni: "",
-        motivo: "",
-        foto: null
-      },
-      {
-        id: "G-88497",
-        pilotoId: "T-01",
-        cliente: "Banco Central - Agencia Norte",
-        direccion: "Bo. El Benque, Frente a Plaza Central",
-        telefono: "22334455",
-        monto: 1200,
-        estado: "pendiente",
-        observaciones: "Cobrar factura en contabilidad",
-        receptor: "",
-        dni: "",
-        motivo: "",
-        foto: null
-      },
-      {
-        id: "G-88498",
-        pilotoId: "T-02",
-        cliente: "Farmacia La Salud",
-        direccion: "Barrio Concepción, 1 Calle 3 Ave",
-        telefono: "33445566",
-        monto: 0,
-        estado: "pendiente",
-        observaciones: "Recibe Licda. Claudia",
-        receptor: "",
-        dni: "",
-        motivo: "",
-        foto: null
-      },
-      {
-        id: "G-88499",
-        pilotoId: "T-03",
-        cliente: "Tienda El Encanto",
-        direccion: "Av. San Isidro, Calle 4, La Ceiba",
-        telefono: "44556677",
-        monto: 800,
-        estado: "pendiente",
-        observaciones: "Entregar por la tarde",
-        receptor: "",
-        dni: "",
-        motivo: "",
-        foto: null
-      }
+      { id: "G-88495", pilotoId: "T-02", cliente: "Comercial El Centro", direccion: "Barrio Guamilito, 5 Calle 8 Ave, frente a Farmacia Simán", telefono: "99887766", monto: 450, estado: "pendiente", observaciones: "Preguntar por Ing. Roberto", receptor: "", dni: "", motivo: "" },
+      { id: "G-88496", pilotoId: "T-02", cliente: "Importadora X", direccion: "Colonia Trejo, 21 Ave 11 Calle, Casa 204", telefono: "88776655", monto: 0, estado: "pendiente", observaciones: "Entregar en garita de seguridad", receptor: "", dni: "", motivo: "" },
+      { id: "G-88497", pilotoId: "T-01", cliente: "Banco Central - Agencia Norte", direccion: "Bo. El Benque, Frente a Plaza Central", telefono: "22334455", monto: 1200, estado: "pendiente", observaciones: "Cobrar factura en contabilidad", receptor: "", dni: "", motivo: "" },
+      { id: "G-88498", pilotoId: "T-02", cliente: "Farmacia La Salud", direccion: "Barrio Concepción, 1 Calle 3 Ave", telefono: "33445566", monto: 0, estado: "pendiente", observaciones: "Recibe Licda. Claudia", receptor: "", dni: "", motivo: "" },
+      { id: "G-88499", pilotoId: "T-03", cliente: "Tienda El Encanto", direccion: "Av. San Isidro, Calle 4, La Ceiba", telefono: "44556677", monto: 800, estado: "pendiente", observaciones: "Entregar por la tarde", receptor: "", dni: "", motivo: "" }
     ];
 
-    // Load persisted state if exists
     if (localStorage.getItem('packagesData')) {
-      try {
-        packages = JSON.parse(localStorage.getItem('packagesData'));
-      } catch(e) { console.error("Error reading saved packages", e); }
+      try { packages = JSON.parse(localStorage.getItem('packagesData')); } catch(e){}
     }
 
-    // App Startup
+    // Canvas signature setup
+    let canvas, ctx, isDrawing = false;
+
     window.addEventListener('DOMContentLoaded', () => {
       document.getElementById('date-display').innerText = new Date().toLocaleDateString('es-HN', { weekday: 'short', day: 'numeric', month: 'short' });
       if (googleSheetUrl) {
         document.getElementById('sheet-url-input').value = googleSheetUrl;
         document.getElementById('sync-badge-text').innerText = 'Sheet Activo';
       }
+      
+      // Check if running in standalone PWA mode
+      const isPWA = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+      if (!isPWA) {
+        document.getElementById('pwa-install-banner').classList.remove('hidden');
+      }
+
       updateDriverUI();
       renderList();
       initSignatureCanvas();
     });
+
+    function openPwaInstallModal() {
+      document.getElementById('modal-pwa').classList.remove('hidden');
+    }
 
     function updateDriverUI() {
       const driver = driversList[currentPilotId] || driversList['T-02'];
@@ -525,16 +558,13 @@
       const container = document.getElementById('package-list');
       container.innerHTML = '';
 
-      // CRITICAL PRIVACY/SECURITY FILTER: Only show packages assigned to active pilot
       let pilotPackages = packages.filter(p => p.pilotoId === currentPilotId);
       let filtered = pilotPackages;
 
-      // Filter by state
       if (filterMode === 'pendiente') filtered = filtered.filter(p => p.estado === 'pendiente');
       if (filterMode === 'entregado') filtered = filtered.filter(p => p.estado === 'entregado');
       if (filterMode === 'incidencia') filtered = filtered.filter(p => p.estado === 'incidencia');
 
-      // Filter by search query
       if (searchQuery) {
         const q = searchQuery.toLowerCase();
         filtered = filtered.filter(p => 
@@ -544,7 +574,6 @@
         );
       }
 
-      // Update counters based ONLY on active pilot's packages
       document.getElementById('count-todos').innerText = pilotPackages.length;
       document.getElementById('count-pendiente').innerText = pilotPackages.filter(p => p.estado === 'pendiente').length;
       document.getElementById('count-entregado').innerText = pilotPackages.filter(p => p.estado === 'entregado').length;
@@ -569,7 +598,6 @@
         const card = document.createElement('div');
         card.className = "bg-white p-4 rounded-2xl shadow-sm border border-gray-200/80 space-y-3 transition hover:shadow-md";
         
-        // Encode address and phone for external map/call triggers
         const encodedAddress = encodeURIComponent(p.direccion + ", San Pedro Sula");
         const cleanPhone = p.telefono.replace(/\D/g,'');
 
@@ -602,13 +630,13 @@
             ` : '<span class="text-[11px] text-gray-400 font-semibold">Pagado en Origen</span>'}
 
             <div class="flex gap-2">
-              <a href="tel:${cleanPhone}" class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 flex items-center justify-center font-bold" title="Llamar">
+              <a href="tel:${cleanPhone}" class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 flex items-center justify-center font-bold touch-active" title="Llamar">
                 <i class="fa-solid fa-phone text-xs"></i>
               </a>
-              <a href="https://wa.me/504${cleanPhone}" target="_blank" class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 hover:bg-emerald-100 flex items-center justify-center font-bold" title="WhatsApp">
+              <a href="https://wa.me/504${cleanPhone}" target="_blank" class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 hover:bg-emerald-100 flex items-center justify-center font-bold touch-active" title="WhatsApp">
                 <i class="fa-brands fa-whatsapp text-sm"></i>
               </a>
-              <a href="https://waze.com/ul?q=${encodedAddress}" target="_blank" class="w-8 h-8 rounded-full bg-sky-50 text-sky-600 hover:bg-sky-100 flex items-center justify-center font-bold" title="Navegar Waze">
+              <a href="https://waze.com/ul?q=${encodedAddress}" target="_blank" class="w-8 h-8 rounded-full bg-sky-50 text-sky-600 hover:bg-sky-100 flex items-center justify-center font-bold touch-active" title="Navegar Waze">
                 <i class="fa-solid fa-location-arrow text-xs"></i>
               </a>
             </div>
@@ -627,13 +655,12 @@
             </div>
           ` : ''}
 
-          <!-- Driver Action Buttons -->
           ${p.estado === 'pendiente' ? `
             <div class="pt-2 flex gap-2 border-t border-gray-100">
-              <button onclick="openIncidencia('${p.id}')" class="w-1/3 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs rounded-xl transition flex items-center justify-center gap-1">
+              <button onclick="openIncidencia('${p.id}')" class="w-1/3 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs rounded-xl transition flex items-center justify-center gap-1 touch-active">
                 <i class="fa-solid fa-xmark"></i> Incidencia
               </button>
-              <button onclick="openEntrega('${p.id}')" class="w-2/3 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl transition shadow flex items-center justify-center gap-1.5">
+              <button onclick="openEntrega('${p.id}')" class="w-2/3 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl transition shadow flex items-center justify-center gap-1.5 touch-active">
                 <i class="fa-solid fa-check"></i> ENTREGAR
               </button>
             </div>
@@ -654,12 +681,66 @@
       document.getElementById('progress-text').innerText = `${completed} / ${total} (${percentage}%)`;
       document.getElementById('progress-bar').style.width = `${percentage}%`;
 
-      // Calculate total COD cash collected from successfully delivered packages for THIS pilot
       const codTotal = pilotPackages
         .filter(p => p.estado === 'entregado')
         .reduce((sum, p) => sum + (p.monto || 0), 0);
 
       document.getElementById('total-cod-collected').innerText = `L. ${codTotal.toLocaleString('es-HN')}.00`;
+    }
+
+    function filterPackages(mode) {
+      filterMode = mode;
+      ['todos', 'pendiente', 'entregado', 'incidencia'].forEach(m => {
+        const btn = document.getElementById(`btn-${m}`);
+        if (m === mode) {
+          btn.className = "flex-1 py-1.5 rounded-lg bg-white text-emerald-700 shadow-sm transition";
+        } else {
+          btn.className = "flex-1 py-1.5 rounded-lg hover:bg-white/50 transition text-gray-600";
+        }
+      });
+      renderList();
+    }
+
+    function handleSearch() {
+      searchQuery = document.getElementById('search-input').value.trim();
+      const clearBtn = document.getElementById('btn-clear-search');
+      if (searchQuery) clearBtn.classList.remove('hidden');
+      else clearBtn.classList.add('hidden');
+      renderList();
+    }
+
+    function clearSearch() {
+      document.getElementById('search-input').value = '';
+      document.getElementById('btn-clear-search').classList.add('hidden');
+      searchQuery = '';
+      renderList();
+    }
+
+    function openEntrega(id) {
+      selectedPackageId = id;
+      const pkg = packages.find(p => p.id === id);
+      document.getElementById('entrega-guia-info').innerText = `Guía: #${pkg.id}`;
+      document.getElementById('entrega-cliente-info').innerText = `Cliente: ${pkg.cliente}`;
+      
+      const cobroContainer = document.getElementById('cobro-container');
+      if (pkg.monto > 0) {
+        document.getElementById('cobro-monto').innerText = `L. ${pkg.monto}.00`;
+        cobroContainer.classList.remove('hidden');
+      } else {
+        cobroContainer.classList.add('hidden');
+      }
+
+      document.getElementById('modal-entrega').classList.remove('hidden');
+      setTimeout(resizeCanvas, 100);
+    }
+
+    function openIncidencia(id) {
+      selectedPackageId = id;
+      document.getElementById('modal-incidencia').classList.remove('hidden');
+    }
+
+    function openConfigModal() {
+      document.getElementById('modal-config').classList.remove('hidden');
     }
 
     function openCierreModal() {
@@ -684,13 +765,66 @@
       document.getElementById(modalId).classList.add('hidden');
     }
 
+    function initSignatureCanvas() {
+      canvas = document.getElementById('signature-pad');
+      if(!canvas) return;
+      ctx = canvas.getContext('ctx') || canvas.getContext('2d');
+
+      const getPos = (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return { x: clientX - rect.left, y: clientY - rect.top };
+      };
+
+      const startDrawing = (e) => {
+        isDrawing = true;
+        const pos = getPos(e);
+        ctx.beginPath();
+        ctx.moveTo(pos.x, pos.y);
+      };
+
+      const draw = (e) => {
+        if (!isDrawing) return;
+        const pos = getPos(e);
+        ctx.lineWidth = 2.5;
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = '#0f172a';
+        ctx.lineTo(pos.x, pos.y);
+        ctx.stroke();
+      };
+
+      const stopDrawing = () => { isDrawing = false; };
+
+      canvas.addEventListener('mousedown', startDrawing);
+      canvas.addEventListener('mousemove', draw);
+      canvas.addEventListener('mouseup', stopDrawing);
+
+      canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startDrawing(e); });
+      canvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e); });
+      canvas.addEventListener('touchend', stopDrawing);
+    }
+
+    function resizeCanvas() {
+      if(!canvas) return;
+      const rect = canvas.parentElement.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+      clearSignature();
+    }
+
+    function clearSignature() {
+      if(!ctx || !canvas) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
     function confirmarEntrega() {
       const pkg = packages.find(p => p.id === selectedPackageId);
       const receptor = document.getElementById('receptor-nombre').value.trim();
       const dni = document.getElementById('receptor-dni').value.trim();
 
       if (!receptor) {
-        showToast("Por favor ingrese el nombre de quien recibe.", "fa-circle-exclamation");
+        showToast("Ingrese el nombre de quien recibe.", "fa-circle-exclamation");
         return;
       }
 
@@ -707,7 +841,6 @@
       renderList();
       showToast(`Entrega de guía #${pkg.id} finalizada exitosamente.`);
 
-      // Sync to sheet if URL configured
       if (googleSheetUrl) syncDataWithSheets();
     }
 
@@ -726,7 +859,6 @@
       renderList();
       showToast(`Incidencia registrada para guía #${pkg.id}`, "fa-triangle-exclamation");
 
-      // Sync to sheet if URL configured
       if (googleSheetUrl) syncDataWithSheets();
     }
 
@@ -738,11 +870,11 @@
 
       if (url) {
         document.getElementById('sync-badge-text').innerText = 'Sheet Activo';
-        showToast("Configuración de Google Sheet guardada");
+        showToast("Configuración guardada");
         syncDataWithSheets();
       } else {
         document.getElementById('sync-badge-text').innerText = 'Sheet';
-        showToast("Modo local activado");
+        showToast("Modo local activo");
       }
     }
 
@@ -753,13 +885,13 @@
       if (!googleSheetUrl) {
         setTimeout(() => {
           syncIcon.classList.remove('animate-spin');
-          showToast("Modo Local: Datos guardados en teléfono.");
+          showToast("Modo Local: Guardado en teléfono.");
         }, 600);
         return;
       }
 
       try {
-        const response = await fetch(googleSheetUrl, {
+        await fetch(googleSheetUrl, {
           method: 'POST',
           mode: 'no-cors',
           headers: { 'Content-Type': 'application/json' },
@@ -767,7 +899,7 @@
         });
 
         syncIcon.classList.remove('animate-spin');
-        showToast("Sincronizado exitosamente con Google Sheets");
+        showToast("Sincronizado con Google Sheets");
       } catch (err) {
         syncIcon.classList.remove('animate-spin');
         showToast("Error al sincronizar con Google Sheets", "fa-triangle-exclamation");
