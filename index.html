@@ -20,7 +20,9 @@
     "short_name": "Piloto Express",
     "description": "App de entregas para pilotos",
     "start_url": "./",
+    "scope": "./",
     "display": "standalone",
+    "display_override": ["standalone", "fullscreen", "minimal-ui"],
     "background_color": "#0f172a",
     "theme_color": "#0f172a",
     "orientation": "portrait",
@@ -28,12 +30,14 @@
       {
         "src": "https://cdn-icons-png.flaticon.com/512/2830/2830305.png",
         "sizes": "192x192",
-        "type": "image/png"
+        "type": "image/png",
+        "purpose": "any maskable"
       },
       {
         "src": "https://cdn-icons-png.flaticon.com/512/2830/2830305.png",
         "sizes": "512x512",
-        "type": "image/png"
+        "type": "image/png",
+        "purpose": "any maskable"
       }
     ]
   }' />
@@ -89,9 +93,12 @@
         <span id="route-title" class="font-black tracking-wide text-emerald-400 uppercase text-[11px]">RUTA 04 - SAN PEDRO</span>
       </div>
       <div class="flex items-center gap-1.5 text-slate-400">
+        <button onclick="toggleFullscreenNative()" title="Modo Pantalla Completa" class="text-[11px] bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 px-2 py-1 rounded-lg border border-emerald-700/60 flex items-center gap-1 transition touch-active font-bold">
+          <i class="fa-solid fa-expand" id="fullscreen-icon"></i>
+          <span id="fullscreen-text">Modo App</span>
+        </button>
         <button onclick="toggleContainerWidth()" title="Alternar Vista Teléfono / Completa" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-amber-300 px-2 py-1 rounded-lg border border-slate-700 flex items-center gap-1 transition touch-active">
-          <i class="fa-solid fa-expand" id="expand-icon"></i>
-          <span id="expand-text" class="hidden sm:inline">Pantalla Completa</span>
+          <i class="fa-solid fa-mobile-screen" id="expand-icon"></i>
         </button>
         <button onclick="openConfigModal()" title="Configurar Google Sheets" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-200 px-2 py-1 rounded-lg border border-slate-700 flex items-center gap-1 transition touch-active">
           <i class="fa-solid fa-file-excel text-emerald-400"></i>
@@ -107,8 +114,8 @@
           <i class="fa-solid fa-download animate-bounce"></i>
         </div>
         <div>
-          <p class="font-black text-xs leading-tight tracking-wide">¿INSTALAR APLICACIÓN?</p>
-          <p class="text-[10px] text-emerald-100 font-medium">Instálala en tu celular para usar como App real</p>
+          <p class="font-black text-xs leading-tight tracking-wide">¿INSTALAR COMO APP REAL?</p>
+          <p class="text-[10px] text-emerald-100 font-medium">Diagnóstico de PWA y solución para no abrir pestañas</p>
         </div>
       </div>
       <button onclick="triggerAppInstall()" class="bg-amber-400 hover:bg-amber-300 text-slate-950 font-black px-3 py-2 rounded-xl text-xs shadow-md border border-amber-300 transition flex items-center gap-1.5 touch-active shrink-0 relative z-10 install-glow">
@@ -207,58 +214,41 @@
         
         <div class="text-center space-y-2 border-b pb-4">
           <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center font-black text-3xl mx-auto shadow-lg border-2 border-white">
-            <i class="fa-solid fa-truck-fast"></i>
+            <i class="fa-solid fa-android text-amber-300"></i>
           </div>
-          <h3 class="font-black text-xl text-slate-900 tracking-tight">INSTALAR APLICACIÓN</h3>
-          <p class="text-xs text-slate-600 font-medium">Instálala como <strong>WhatsApp</strong> para usarla directo en tu celular sin usar el navegador.</p>
+          <h3 class="font-black text-xl text-slate-900 tracking-tight">OPCIONES DE INSTALACIÓN DIRECTA</h3>
+          <p class="text-xs text-slate-600 font-medium">Instala la App en tus teléfonos sin complicaciones técnicas.</p>
         </div>
 
-        <!-- Botón de instalación directa 1-Clic si el navegador lo soporta -->
-        <div id="direct-install-container" class="space-y-2">
-          <button onclick="executeNativeInstall()" class="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm rounded-2xl shadow-xl flex items-center justify-center gap-2.5 transition touch-active border-2 border-emerald-500 uppercase tracking-wide">
-            <i class="fa-solid fa-download text-lg"></i>
-            <span>TOCA AQUÍ PARA INSTALAR AHORA</span>
+        <!-- Opción Directa 1: APK Real para Android -->
+        <div class="bg-gradient-to-br from-emerald-900 to-slate-900 text-white rounded-2xl p-4 space-y-3 border border-emerald-500/40 shadow-md">
+          <div class="flex items-center justify-between">
+            <span class="bg-emerald-500 text-slate-950 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase">OPCIÓN #1 (Recomendada)</span>
+            <i class="fa-brands fa-android text-emerald-400 text-xl"></i>
+          </div>
+          <h4 class="font-black text-sm text-white">Generar Archivo .APK Instalable</h4>
+          <p class="text-[11px] text-slate-300 leading-relaxed">
+            Convierte este archivo HTML en una **App Android (.apk)** en 1 solo clic para distribuirla a tus pilotos por WhatsApp.
+          </p>
+          <a href="https://www.web2apk.com" target="_blank" class="w-full py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs rounded-xl flex items-center justify-center gap-2 transition shadow touch-active">
+            <i class="fa-solid fa-file-zipper"></i> Convertir a APK en Web2APK
+          </a>
+        </div>
+
+        <!-- Opción Directa 2: Instalación Inmediata de App Web -->
+        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2.5">
+          <span class="bg-slate-200 text-slate-800 text-[10px] font-black px-2 py-0.5 rounded-full uppercase">OPCIÓN #2</span>
+          <h4 class="font-black text-xs text-slate-800">Modo App Inmersiva Sin Barras</h4>
+          <p class="text-[11px] text-slate-600 leading-relaxed">
+            Si no deseas crear un APK, activa el modo inmersivo directamente desde tu navegador para ocultar botones y pestañas.
+          </p>
+          <button onclick="toggleFullscreenNative(); closeModal('modal-pwa');" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-emerald-400 font-extrabold text-xs rounded-xl shadow flex items-center justify-center gap-2 touch-active">
+            <i class="fa-solid fa-expand"></i> Ocultar Barras / Modo App Full
           </button>
-          <p class="text-[11px] text-center text-slate-500">Aparecerá un mensaje en pantalla, presiona <strong>"Instalar"</strong> o <strong>"Agregar"</strong>.</p>
-        </div>
-
-        <!-- Guía visual con paso a paso para Android / iPhone cuando no hay API direct -->
-        <div id="manual-install-instructions" class="space-y-3 pt-1">
-          <div class="bg-amber-50 border-2 border-amber-300 rounded-2xl p-3.5 space-y-2">
-            <p class="font-black text-xs text-amber-950 flex items-center gap-2">
-              <i class="fa-brands fa-android text-emerald-600 text-base"></i> Si usas Celular Android:
-            </p>
-            <div class="space-y-1.5 text-xs text-amber-900 font-semibold">
-              <p class="flex items-center gap-2 bg-white/80 p-2 rounded-xl border border-amber-200">
-                <span class="w-6 h-6 rounded-full bg-amber-500 text-white font-black text-xs flex items-center justify-center shrink-0">1</span>
-                <span>Toca los <strong>3 puntos (⋮)</strong> arriba a la derecha.</span>
-              </p>
-              <p class="flex items-center gap-2 bg-white/80 p-2 rounded-xl border border-amber-200">
-                <span class="w-6 h-6 rounded-full bg-amber-500 text-white font-black text-xs flex items-center justify-center shrink-0">2</span>
-                <span>Toca en <strong>"Agregar a la pantalla principal"</strong> o <strong>"Instalar App"</strong>.</span>
-              </p>
-            </div>
-          </div>
-
-          <div class="bg-slate-50 border-2 border-slate-200 rounded-2xl p-3.5 space-y-2">
-            <p class="font-black text-xs text-slate-900 flex items-center gap-2">
-              <i class="fa-brands fa-apple text-slate-800 text-base"></i> Si usas iPhone (Safari):
-            </p>
-            <div class="space-y-1.5 text-xs text-slate-800 font-semibold">
-              <p class="flex items-center gap-2 bg-white p-2 rounded-xl border border-slate-200">
-                <span class="w-6 h-6 rounded-full bg-slate-800 text-white font-black text-xs flex items-center justify-center shrink-0">1</span>
-                <span>Toca el botón <strong>Compartir <i class="fa-solid fa-share-from-square text-blue-600"></i></strong> (abajo al centro).</span>
-              </p>
-              <p class="flex items-center gap-2 bg-white p-2 rounded-xl border border-slate-200">
-                <span class="w-6 h-6 rounded-full bg-slate-800 text-white font-black text-xs flex items-center justify-center shrink-0">2</span>
-                <span>Elige <strong>"Agregar a inicio" <i class="fa-solid fa-plus-square text-emerald-600"></i></strong>.</span>
-              </p>
-            </div>
-          </div>
         </div>
 
         <button onclick="closeModal('modal-pwa')" class="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs rounded-xl transition">
-          Entendido / Continuar
+          Cerrar
         </button>
       </div>
     </div>
@@ -568,6 +558,27 @@
 
   <!-- JavaScript App Engine -->
   <script>
+    // Registro automático de Service Worker virtual en Blob para evitar requerir archivos externos
+    if ('serviceWorker' in navigator) {
+      try {
+        const inlineSW = `
+          const CACHE_NAME = 'piloto-express-auto-v1';
+          self.addEventListener('install', (e) => self.skipWaiting());
+          self.addEventListener('activate', (e) => self.clients.claim());
+          self.addEventListener('fetch', (e) => {
+            e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+          });
+        `;
+        const blob = new Blob([inlineSW], { type: 'application/javascript' });
+        const swUrl = URL.createObjectURL(blob);
+        navigator.serviceWorker.register(swUrl)
+          .then(reg => console.log('Service Worker Auto-Incrustado Activo:', reg.scope))
+          .catch(err => console.log('PWA SW Auto Status:', err));
+      } catch (e) {
+        console.log('Error inicializando Service Worker:', e);
+      }
+    }
+
     let googleSheetUrl = localStorage.getItem('googleSheetUrl') || '';
     let selectedPackageId = null;
     let filterMode = 'todos';
@@ -606,10 +617,8 @@
       e.preventDefault();
       deferredPrompt = e;
       
-      // Mostrar banners si la app no está instalada
       document.getElementById('pwa-install-banner').classList.remove('hidden');
       document.getElementById('btn-install-footer').classList.remove('hidden');
-      document.getElementById('direct-install-container').classList.remove('hidden');
     });
 
     window.addEventListener('DOMContentLoaded', () => {
@@ -619,500 +628,120 @@
         document.getElementById('sync-badge-text').innerText = 'Sheet Activo';
       }
       
-      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone || document.referrer.includes('android-app://');
       if (isStandalone) {
-        // Si ya está ejecutándose como App nativa instalada, ocultamos los avisos de instalación
         document.getElementById('pwa-install-banner').classList.add('hidden');
         document.getElementById('btn-install-footer').classList.add('hidden');
       }
 
+      runPWADiagnostic();
       updateDriverUI();
       renderList();
       initSignatureCanvas();
     });
 
-    function triggerAppInstall() {
-      document.getElementById('modal-pwa').classList.remove('hidden');
+    function runPWADiagnostic() {
+      const diagBox = document.getElementById('pwa-diagnostic-box');
+      if (!diagBox) return;
+
+      const isHttps = window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const isFile = window.location.protocol === 'file:';
+
+      if (isFile) {
+        diagBox.className = "bg-amber-50 border border-amber-300 text-amber-950 p-3 rounded-2xl text-xs space-y-1";
+        diagBox.innerHTML = `
+          <p class="font-black flex items-center gap-1.5 text-amber-800">
+            <i class="fa-solid fa-folder-open text-amber-600"></i> Ejecutando archivo local (file://)
+          </p>
+          <p class="text-[11px]">Android NO permite instalar PWA desde un archivo guardado localmente. Debes subirlo a un hosting web gratuito (ej: Netlify o Vercel).</p>
+        `;
+      } else if (!isHttps) {
+        diagBox.className = "bg-red-50 border border-red-300 text-red-950 p-3 rounded-2xl text-xs space-y-1";
+        diagBox.innerHTML = `
+          <p class="font-black flex items-center gap-1.5 text-red-800">
+            <i class="fa-solid fa-lock-open text-red-600"></i> Conexión HTTP No Segura
+          </p>
+          <p class="text-[11px]">Chrome requiere obligatorio HTTPS para instalar como App sin pestañas.</p>
+        `;
+      } else {
+        diagBox.className = "bg-emerald-50 border border-emerald-300 text-emerald-950 p-3 rounded-2xl text-xs space-y-1";
+        diagBox.innerHTML = `
+          <p class="font-black flex items-center gap-1.5 text-emerald-800">
+            <i class="fa-solid fa-circle-check text-emerald-600"></i> Servidor HTTPS Detectado
+          </p>
+          <p class="text-[11px]">¡Excelente! Asegúrate de subir también el archivo <code>sw.js</code> al servidor para que el botón "Instalar" cree la App autónoma.</p>
+        `;
+      }
     }
 
-    function executeNativeInstall() {
+    function downloadServiceWorkerFile() {
+      const swContent = `// Service Worker para Piloto Express PWA
+const CACHE_NAME = 'piloto-express-v1';
+
+self.addEventListener('install', (e) => {
+  e.waitUntil(self.skipWaiting());
+});
+
+self.addEventListener('activate', (e) => {
+  e.waitUntil(self.clients.claim());
+});
+
+self.addEventListener('fetch', (e) => {
+  e.respondWith(
+    fetch(e.request).catch(() => caches.match(e.request))
+  );
+});`;
+
+      const blob = new Blob([swContent], { type: 'application/javascript' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'sw.js';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      showToast("Archivo sw.js descargado. Súbelo junto al index.html", "fa-download");
+    }
+
+    function toggleFullscreenNative() {
+      const elem = document.documentElement;
+      const fsIcon = document.getElementById('fullscreen-icon');
+      const fsText = document.getElementById('fullscreen-text');
+
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        if (elem.requestFullscreen) {
+          elem.requestFullscreen().catch(() => {});
+        } else if (elem.webkitRequestFullscreen) {
+          elem.webkitRequestFullscreen();
+        }
+        if (fsIcon) fsIcon.className = "fa-solid fa-compress";
+        if (fsText) fsText.innerText = "Salir App";
+        showToast("Modo App Inmersivo activado", "fa-expand");
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen().catch(() => {});
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        }
+        if (fsIcon) fsIcon.className = "fa-solid fa-expand";
+        if (fsText) fsText.innerText = "Modo App";
+      }
+    }
+
+    function triggerAppInstall() {
       if (deferredPrompt) {
         deferredPrompt.prompt();
         deferredPrompt.userChoice.then((choiceResult) => {
           if (choiceResult.outcome === 'accepted') {
-            showToast("¡App instalada con éxito en tu pantalla de inicio!", "fa-circle-check");
-            document.getElementById('pwa-install-banner').classList.add('hidden');
-            document.getElementById('btn-install-footer').classList.add('hidden');
-            closeModal('modal-pwa');
+            showToast("¡Instalando la aplicación en tu celular!", "fa-circle-check");
           }
           deferredPrompt = null;
         });
       } else {
-        showToast("Sigue los sencillos pasos indicados en pantalla", "fa-mobile-screen");
+        document.getElementById('modal-pwa').classList.remove('hidden');
       }
     }
 
-    function toggleContainerWidth() {
-      const container = document.getElementById('app-container');
-      const expandIcon = document.getElementById('expand-icon');
-      const expandText = document.getElementById('expand-text');
-
-      isFullWidthView = !isFullWidthView;
-
-      if (isFullWidthView) {
-        container.classList.remove('max-w-md', 'md:rounded-[32px]', 'md:border-[8px]');
-        container.classList.add('max-w-full', 'rounded-none', 'border-0');
-        expandIcon.className = "fa-solid fa-compress";
-        if(expandText) expandText.innerText = "Vista Móvil";
-      } else {
-        container.classList.add('max-w-md', 'md:rounded-[32px]', 'md:border-[8px]');
-        container.classList.remove('max-w-full', 'rounded-none', 'border-0');
-        expandIcon.className = "fa-solid fa-expand";
-        if(expandText) expandText.innerText = "Pantalla Completa";
-      }
+    function triggerAppInstall() {
+      document.getElementById('modal-pwa').classList.remove('hidden');
     }
-
-    function updateDriverUI() {
-      const driver = driversList[currentPilotId] || driversList['T-02'];
-      document.getElementById('driver-name-display').innerText = driver.nombre;
-      document.getElementById('driver-badge-display').innerText = driver.badge;
-      document.getElementById('driver-route-display').innerText = `Piloto Asignado | ${driver.zona}`;
-      document.getElementById('route-title').innerText = driver.ruta;
-      document.getElementById('piloto-select').value = currentPilotId;
-    }
-
-    function openPilotoModal() {
-      document.getElementById('modal-piloto').classList.remove('hidden');
-    }
-
-    function switchPilot() {
-      currentPilotId = document.getElementById('piloto-select').value;
-      localStorage.setItem('currentPilotId', currentPilotId);
-      closeModal('modal-piloto');
-      updateDriverUI();
-      renderList();
-      showToast(`Cambiado a piloto ${driversList[currentPilotId].nombre}`);
-    }
-
-    function saveState() {
-      localStorage.setItem('packagesData', JSON.stringify(packages));
-    }
-
-    function renderList() {
-      const container = document.getElementById('package-list');
-      container.innerHTML = '';
-
-      let pilotPackages = packages.filter(p => p.pilotoId === currentPilotId);
-      let filtered = pilotPackages;
-
-      if (filterMode === 'pendiente') filtered = filtered.filter(p => p.estado === 'pendiente');
-      if (filterMode === 'entregado') filtered = filtered.filter(p => p.estado === 'entregado');
-      if (filterMode === 'incidencia') filtered = filtered.filter(p => p.estado === 'incidencia');
-
-      if (searchQuery) {
-        const q = searchQuery.toLowerCase();
-        filtered = filtered.filter(p => 
-          p.id.toLowerCase().includes(q) || 
-          p.cliente.toLowerCase().includes(q) || 
-          p.direccion.toLowerCase().includes(q)
-        );
-      }
-
-      document.getElementById('count-todos').innerText = pilotPackages.length;
-      document.getElementById('count-pendiente').innerText = pilotPackages.filter(p => p.estado === 'pendiente').length;
-      document.getElementById('count-entregado').innerText = pilotPackages.filter(p => p.estado === 'entregado').length;
-      document.getElementById('count-incidencia').innerText = pilotPackages.filter(p => p.estado === 'incidencia').length;
-
-      if (filtered.length === 0) {
-        container.innerHTML = `
-          <div class="text-center py-12 text-gray-400 space-y-2">
-            <i class="fa-solid fa-box-open text-3xl"></i>
-            <p class="text-xs font-semibold">No se encontraron guías en esta vista.</p>
-          </div>`;
-      }
-
-      filtered.forEach((p) => {
-        const isEntregado = p.estado === 'entregado';
-        const isIncidencia = p.estado === 'incidencia';
-
-        let badge = '<span class="bg-amber-100 text-amber-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-amber-200">Pendiente</span>';
-        if (isEntregado) badge = '<span class="bg-emerald-100 text-emerald-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-emerald-200">🟢 Entregado</span>';
-        if (isIncidencia) badge = '<span class="bg-red-100 text-red-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-red-200">🔴 No Entregado</span>';
-
-        const card = document.createElement('div');
-        card.className = "bg-white p-3.5 rounded-2xl shadow-sm border border-gray-200/80 space-y-2.5 transition hover:shadow-md";
-        
-        const encodedAddress = encodeURIComponent(p.direccion + ", Honduras");
-        const cleanPhone = p.telefono.replace(/\D/g,'');
-
-        card.innerHTML = `
-          <div class="flex justify-between items-start">
-            <div>
-              <span class="text-xs font-black text-blue-600 tracking-wider">#${p.id}</span>
-              <h4 class="font-bold text-sm text-slate-800 leading-tight">${p.cliente}</h4>
-            </div>
-            ${badge}
-          </div>
-
-          <p class="text-xs text-slate-600 flex items-start gap-1.5 leading-relaxed">
-            <i class="fa-solid fa-location-dot text-red-500 mt-0.5 shrink-0"></i>
-            <span>${p.direccion}</span>
-          </p>
-
-          ${p.observaciones ? `
-            <p class="text-[11px] text-slate-500 bg-slate-50 p-2 rounded-lg border border-slate-200/60 flex items-center gap-1.5">
-              <i class="fa-solid fa-note-sticky text-amber-500"></i>
-              <span>${p.observaciones}</span>
-            </p>
-          ` : ''}
-
-          <div class="flex justify-between items-center pt-1 text-xs">
-            ${p.monto > 0 ? `
-              <span class="font-extrabold text-amber-800 bg-amber-100/80 px-2.5 py-1 rounded-lg border border-amber-200 flex items-center gap-1">
-                <i class="fa-solid fa-money-bill-wave"></i> COD: L. ${p.monto}.00
-              </span>
-            ` : '<span class="text-[11px] text-gray-400 font-semibold">Pagado en Origen</span>'}
-
-            <div class="flex gap-2">
-              <a href="tel:${cleanPhone}" class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 flex items-center justify-center font-bold touch-active" title="Llamar">
-                <i class="fa-solid fa-phone text-xs"></i>
-              </a>
-              <a href="https://wa.me/504${cleanPhone}" target="_blank" class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 hover:bg-emerald-100 flex items-center justify-center font-bold touch-active" title="WhatsApp">
-                <i class="fa-brands fa-whatsapp text-sm"></i>
-              </a>
-              <a href="https://waze.com/ul?q=${encodedAddress}" target="_blank" class="w-8 h-8 rounded-full bg-sky-50 text-sky-600 hover:bg-sky-100 flex items-center justify-center font-bold touch-active" title="Navegar Waze">
-                <i class="fa-solid fa-location-arrow text-xs"></i>
-              </a>
-            </div>
-          </div>
-
-          ${isIncidencia ? `
-            <div class="text-xs bg-red-50 text-red-700 p-2 rounded-xl border border-red-200/70 font-medium space-y-1">
-              <div><strong>Motivo fallo:</strong> ${p.motivo}</div>
-              ${p.foto ? `<div class="text-[10px] text-red-600 flex items-center gap-1"><i class="fa-solid fa-camera"></i> Evidencia adjunta</div>` : ''}
-            </div>
-          ` : ''}
-
-          ${isEntregado ? `
-            <div class="text-xs bg-emerald-50 text-emerald-800 p-2 rounded-xl border border-emerald-200/70 font-medium flex justify-between items-center">
-              <span>Recibió: <strong>${p.receptor}</strong></span>
-              <div class="flex items-center gap-1 text-emerald-600">
-                ${p.foto ? `<i class="fa-solid fa-camera text-xs" title="Foto adjunta"></i>` : ''}
-                <i class="fa-solid fa-signature"></i>
-              </div>
-            </div>
-          ` : ''}
-
-          ${p.estado === 'pendiente' ? `
-            <div class="pt-2 flex gap-2 border-t border-gray-100">
-              <button onclick="openIncidencia('${p.id}')" class="w-1/3 py-2 bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs rounded-xl transition flex items-center justify-center gap-1 touch-active">
-                <i class="fa-solid fa-xmark"></i> Incidencia
-              </button>
-              <button onclick="openEntrega('${p.id}')" class="w-2/3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl transition shadow flex items-center justify-center gap-1.5 touch-active">
-                <i class="fa-solid fa-check"></i> ENTREGAR
-              </button>
-            </div>
-          ` : ''}
-        `;
-        container.appendChild(card);
-      });
-
-      updateMetrics();
-    }
-
-    function updateMetrics() {
-      const pilotPackages = packages.filter(p => p.pilotoId === currentPilotId);
-      const completed = pilotPackages.filter(p => p.estado !== 'pendiente').length;
-      const total = pilotPackages.length;
-      const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
-
-      document.getElementById('progress-text').innerText = `${completed} / ${total} (${percentage}%)`;
-      document.getElementById('progress-bar').style.width = `${percentage}%`;
-
-      const codTotal = pilotPackages
-        .filter(p => p.estado === 'entregado')
-        .reduce((sum, p) => sum + (p.monto || 0), 0);
-
-      document.getElementById('total-cod-collected').innerText = `L. ${codTotal.toLocaleString('es-HN')}.00`;
-    }
-
-    function filterPackages(mode) {
-      filterMode = mode;
-      ['todos', 'pendiente', 'entregado', 'incidencia'].forEach(m => {
-        const btn = document.getElementById(`btn-${m}`);
-        if (m === mode) {
-          btn.className = "flex-1 py-1.5 rounded-lg bg-white text-emerald-700 shadow-sm transition";
-        } else {
-          btn.className = "flex-1 py-1.5 rounded-lg hover:bg-white/50 transition text-gray-600";
-        }
-      });
-      renderList();
-    }
-
-    function handleSearch() {
-      searchQuery = document.getElementById('search-input').value.trim();
-      const clearBtn = document.getElementById('btn-clear-search');
-      if (searchQuery) clearBtn.classList.remove('hidden');
-      else clearBtn.classList.add('hidden');
-      renderList();
-    }
-
-    function clearSearch() {
-      document.getElementById('search-input').value = '';
-      document.getElementById('btn-clear-search').classList.add('hidden');
-      searchQuery = '';
-      renderList();
-    }
-
-    function openScannerModal() {
-      const quickScanContainer = document.getElementById('quick-scan-buttons');
-      quickScanContainer.innerHTML = '';
-      
-      const pilotPackages = packages.filter(p => p.pilotoId === currentPilotId && p.estado === 'pendiente');
-      if(pilotPackages.length === 0) {
-        quickScanContainer.innerHTML = `<p class="col-span-2 text-xs text-amber-400">No hay guías pendientes en esta ruta.</p>`;
-      } else {
-        pilotPackages.forEach(p => {
-          const btn = document.createElement('button');
-          btn.className = "bg-slate-800 hover:bg-emerald-700 p-2 rounded-xl text-xs text-white font-bold border border-slate-700 transition";
-          btn.innerText = `G-${p.id.replace('G-','')}`;
-          btn.onclick = () => simulateScanMatch(p.id);
-          quickScanContainer.appendChild(btn);
-        });
-      }
-
-      document.getElementById('modal-scanner').classList.remove('hidden');
-    }
-
-    function simulateScanMatch(guideId) {
-      closeModal('modal-scanner');
-      showToast(`Escaneado: Guía #${guideId}`);
-      openEntrega(guideId);
-    }
-
-    function openEntrega(id) {
-      selectedPackageId = id;
-      capturedPhotoData.entrega = null;
-      document.getElementById('entrega-photo-preview').classList.add('hidden');
-      document.getElementById('entrega-photo-btn-text').innerText = "Tomar Foto";
-
-      const pkg = packages.find(p => p.id === id);
-      document.getElementById('entrega-guia-info').innerText = `Guía: #${pkg.id}`;
-      document.getElementById('entrega-cliente-info').innerText = `Cliente: ${pkg.cliente}`;
-      
-      const cobroContainer = document.getElementById('cobro-container');
-      if (pkg.monto > 0) {
-        document.getElementById('cobro-monto').innerText = `L. ${pkg.monto}.00`;
-        cobroContainer.classList.remove('hidden');
-      } else {
-        cobroContainer.classList.add('hidden');
-      }
-
-      document.getElementById('modal-entrega').classList.remove('hidden');
-      setTimeout(resizeCanvas, 100);
-    }
-
-    function openIncidencia(id) {
-      selectedPackageId = id;
-      capturedPhotoData.incidencia = null;
-      document.getElementById('incidencia-photo-preview').classList.add('hidden');
-      document.getElementById('incidencia-photo-btn-text').innerText = "Tomar Foto Fachada";
-      document.getElementById('modal-incidencia').classList.remove('hidden');
-    }
-
-    function triggerPhotoUpload(type) {
-      document.getElementById(`${type}-photo-input`).click();
-    }
-
-    function handlePhotoSelect(event, type) {
-      const file = event.target.files[0];
-      if (file) {
-        capturedPhotoData[type] = file.name;
-        document.getElementById(`${type}-photo-preview`).classList.remove('hidden');
-        document.getElementById(`${type}-photo-btn-text`).innerText = "Foto Lista ✔";
-        showToast("Evidencia fotográfica adjuntada");
-      }
-    }
-
-    function openConfigModal() {
-      document.getElementById('modal-config').classList.remove('hidden');
-    }
-
-    function openCierreModal() {
-      const pilotPackages = packages.filter(p => p.pilotoId === currentPilotId);
-      const totalGuias = pilotPackages.length;
-      const entregados = pilotPackages.filter(p => p.estado === 'entregado').length;
-      const incidencias = pilotPackages.filter(p => p.estado === 'incidencia').length;
-      
-      const codPackages = pilotPackages.filter(p => p.estado === 'entregado' && p.monto > 0);
-      const totalDinero = codPackages.reduce((acc, p) => acc + p.monto, 0);
-
-      document.getElementById('cierre-total-guias').innerText = totalGuias;
-      document.getElementById('cierre-entregados').innerText = entregados;
-      document.getElementById('cierre-incidencias').innerText = incidencias;
-      document.getElementById('cierre-cod-count').innerText = codPackages.length;
-      document.getElementById('cierre-total-dinero').innerText = `L. ${totalDinero.toLocaleString('es-HN')}.00`;
-
-      document.getElementById('modal-cierre').classList.remove('hidden');
-    }
-
-    function closeModal(modalId) {
-      document.getElementById(modalId).classList.add('hidden');
-    }
-
-    function initSignatureCanvas() {
-      canvas = document.getElementById('signature-pad');
-      if(!canvas) return;
-      ctx = canvas.getContext('2d');
-
-      const getPos = (e) => {
-        const rect = canvas.getBoundingClientRect();
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        return { x: clientX - rect.left, y: clientY - rect.top };
-      };
-
-      const startDrawing = (e) => {
-        isDrawing = true;
-        const pos = getPos(e);
-        ctx.beginPath();
-        ctx.moveTo(pos.x, pos.y);
-      };
-
-      const draw = (e) => {
-        if (!isDrawing) return;
-        const pos = getPos(e);
-        ctx.lineWidth = 2.5;
-        ctx.lineCap = 'round';
-        ctx.strokeStyle = '#0f172a';
-        ctx.lineTo(pos.x, pos.y);
-        ctx.stroke();
-      };
-
-      const stopDrawing = () => { isDrawing = false; };
-
-      canvas.addEventListener('mousedown', startDrawing);
-      canvas.addEventListener('mousemove', draw);
-      canvas.addEventListener('mouseup', stopDrawing);
-
-      canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startDrawing(e); });
-      canvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e); });
-      canvas.addEventListener('touchend', stopDrawing);
-    }
-
-    function resizeCanvas() {
-      if(!canvas) return;
-      const rect = canvas.parentElement.getBoundingClientRect();
-      canvas.width = rect.width;
-      canvas.height = rect.height;
-      clearSignature();
-    }
-
-    function clearSignature() {
-      if(!ctx || !canvas) return;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
-
-    function confirmarEntrega() {
-      const pkg = packages.find(p => p.id === selectedPackageId);
-      const receptor = document.getElementById('receptor-nombre').value.trim();
-      const dni = document.getElementById('receptor-dni').value.trim();
-
-      if (!receptor) {
-        showToast("Ingrese el nombre de quien recibe.", "fa-circle-exclamation");
-        return;
-      }
-
-      pkg.estado = 'entregado';
-      pkg.receptor = receptor;
-      pkg.dni = dni;
-      pkg.foto = capturedPhotoData.entrega;
-
-      saveState();
-      closeModal('modal-entrega');
-      document.getElementById('receptor-nombre').value = '';
-      document.getElementById('receptor-dni').value = '';
-      clearSignature();
-
-      renderList();
-      showToast(`Entrega de guía #${pkg.id} realizada con éxito.`);
-
-      if (googleSheetUrl) syncDataWithSheets();
-    }
-
-    function confirmarIncidencia() {
-      const pkg = packages.find(p => p.id === selectedPackageId);
-      const motivo = document.querySelector('input[name="motivo"]:checked').value;
-      const notas = document.getElementById('incidencia-notas').value.trim();
-
-      pkg.estado = 'incidencia';
-      pkg.motivo = notas ? `${motivo} (${notas})` : motivo;
-      pkg.foto = capturedPhotoData.incidencia;
-
-      saveState();
-      closeModal('modal-incidencia');
-      document.getElementById('incidencia-notas').value = '';
-
-      renderList();
-      showToast(`Incidencia registrada para guía #${pkg.id}`, "fa-triangle-exclamation");
-
-      if (googleSheetUrl) syncDataWithSheets();
-    }
-
-    function saveSheetConfig() {
-      const url = document.getElementById('sheet-url-input').value.trim();
-      googleSheetUrl = url;
-      localStorage.setItem('googleSheetUrl', url);
-      closeModal('modal-config');
-
-      if (url) {
-        document.getElementById('sync-badge-text').innerText = 'Sheet Activo';
-        showToast("Configuración guardada");
-        syncDataWithSheets();
-      } else {
-        document.getElementById('sync-badge-text').innerText = 'Sheet';
-        showToast("Modo local activo");
-      }
-    }
-
-    async function syncDataWithSheets() {
-      const syncIcon = document.getElementById('sync-icon');
-      syncIcon.classList.add('animate-spin');
-
-      if (!googleSheetUrl) {
-        setTimeout(() => {
-          syncIcon.classList.remove('animate-spin');
-          showToast("Guardado en dispositivo (Modo Local)");
-        }, 600);
-        return;
-      }
-
-      try {
-        await fetch(googleSheetUrl, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'sync_driver', packages: packages })
-        });
-
-        syncIcon.classList.remove('animate-spin');
-        showToast("Sincronizado con Google Sheets");
-      } catch (err) {
-        syncIcon.classList.remove('animate-spin');
-        showToast("Error al conectar con Google Sheets", "fa-triangle-exclamation");
-      }
-    }
-
-    function showToast(message, icon = "fa-circle-check") {
-      const toast = document.getElementById('toast-notification');
-      document.getElementById('toast-message').innerText = message;
-      document.getElementById('toast-icon').className = `fa-solid ${icon} text-emerald-400`;
-
-      toast.classList.remove('hidden');
-      setTimeout(() => {
-        toast.classList.add('hidden');
-      }, 3000);
-    }
-  </script>
-</body>
-</html>
+<!-- ... existing code ...">
