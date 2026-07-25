@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>App Móvil de Piloto - Mensajería Express</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+    /* Custom Scrollbar for sleek mobile experience */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(8px); }
+  </style>
+</head>
+<body class="bg-slate-900 font-sans text-gray-800 min-h-screen flex items-center justify-center p-0 md:p-4 selection:bg-emerald-500 selection:text-white">
+
+  <!-- Mobile Simulator Frame -->
+  <div class="w-full max-w-md bg-gray-100 rounded-none md:rounded-[32px] shadow-2xl overflow-hidden border-0 md:border-[8px] border-slate-800 flex flex-col h-screen md:h-[860px] relative">
+    
+    <!-- Top Bar / Status Header -->
+    <div class="bg-slate-900 text-white px-5 pt-3 pb-2 flex justify-between items-center text-xs border-b border-slate-800 z-10 shrink-0">
+      <div class="flex items-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span id="route-title" class="font-bold tracking-wide text-emerald-400">RUTA 04 - SAN PEDRO</span>
+      </div>
+      <div class="flex items-center gap-3 text-slate-400">
+        <button onclick="openConfigModal()" title="Configurar Google Sheets" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-2 py-1 rounded border border-slate-700 flex items-center gap-1 transition">
+          <i class="fa-solid fa-file-excel text-emerald-400"></i>
+          <span id="sync-badge-text">Sheet</span>
+        </button>
+        <span id="network-status" title="Estado de Red"><i class="fa-solid fa-wifi text-emerald-400"></i></span>
+        <span><i class="fa-solid fa-battery-three-quarters text-emerald-400"></i> 90%</span>
+      </div>
+    </div>
+
+    <!-- Driver Info Header -->
+    <div class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-4 shadow-md shrink-0 border-b border-slate-700">
+      <div class="flex justify-between items-center mb-2">
+        <div>
+          <h1 class="font-extrabold text-base tracking-tight text-white flex items-center gap-2">
+            <span id="driver-name-display">Mario Rodríguez</span>
+            <span id="driver-badge-display" class="bg-emerald-500/20 text-emerald-300 text-[10px] px-2 py-0.5 rounded-full border border-emerald-500/30">T-02</span>
+            <button onclick="openPilotoModal()" title="Cambiar Piloto / Ruta" class="text-slate-400 hover:text-emerald-400 text-xs ml-1 bg-slate-800 p-1.5 rounded-lg border border-slate-700 transition">
+              <i class="fa-solid fa-user-gear"></i>
+            </button>
+          </h1>
+          <p id="driver-route-display" class="text-xs text-slate-400">Piloto Asignado | San Pedro Sula</p>
+        </div>
+        <div class="text-right">
+          <span id="date-display" class="text-xs font-semibold text-slate-300 bg-slate-800/80 px-2.5 py-1 rounded-lg border border-slate-700"></span>
+        </div>
+      </div>
+
+      <!-- Route Progress & Metrics -->
+      <div class="mt-3 bg-slate-800/60 p-3 rounded-xl border border-slate-700/60">
+        <div class="flex justify-between text-xs mb-1.5 font-semibold">
+          <span class="text-slate-300">Progreso de la Ruta</span>
+          <span id="progress-text" class="text-emerald-400 font-bold">0 / 0 (0%)</span>
+        </div>
+        <div class="w-full bg-slate-700/80 h-2.5 rounded-full overflow-hidden p-0.5">
+          <div id="progress-bar" class="bg-gradient-to-r from-emerald-500 to-teal-400 h-full w-0 rounded-full transition-all duration-500 shadow-sm"></div>
+        </div>
+
+        <!-- COD Cash Collected Summary -->
+        <div class="mt-2.5 pt-2 border-t border-slate-700/50 flex justify-between items-center text-xs">
+          <span class="text-slate-400 flex items-center gap-1">
+            <i class="fa-solid fa-money-bill-wave text-amber-400"></i> Efectivo Cobrado COD:
+          </span>
+          <span id="total-cod-collected" class="font-extrabold text-amber-400 text-sm">L. 0.00</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search & Quick Filters -->
+    <div class="bg-white border-b border-gray-200 p-2 shadow-sm shrink-0 space-y-2">
+      <!-- Search Input -->
+      <div class="relative">
+        <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-gray-400 text-xs"></i>
+        <input type="text" id="search-input" onkeyup="handleSearch()" placeholder="Buscar por guía, cliente o dirección..." 
+               class="w-full pl-8 pr-8 py-1.5 text-xs bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:bg-white outline-none transition">
+        <button onclick="clearSearch()" id="btn-clear-search" class="hidden absolute right-2.5 top-2 text-gray-400 hover:text-gray-600 text-xs">&times;</button>
+      </div>
+
+      <!-- Filter Tabs -->
+      <div class="flex bg-gray-100 p-1 rounded-lg gap-1 text-[11px] font-bold text-gray-600">
+        <button onclick="filterPackages('todos')" id="btn-todos" class="flex-1 py-1.5 rounded-md bg-white text-emerald-700 shadow-sm transition">TODOS (<span id="count-todos">0</span>)</button>
+        <button onclick="filterPackages('pendiente')" id="btn-pendiente" class="flex-1 py-1.5 rounded-md hover:bg-white/50 transition">PEND. (<span id="count-pendiente">0</span>)</button>
+        <button onclick="filterPackages('entregado')" id="btn-entregado" class="flex-1 py-1.5 rounded-md hover:bg-white/50 transition">ÉXITO (<span id="count-entregado">0</span>)</button>
+        <button onclick="filterPackages('incidencia')" id="btn-incidencia" class="flex-1 py-1.5 rounded-md hover:bg-white/50 transition">FALLO (<span id="count-incidencia">0</span>)</button>
+      </div>
+    </div>
+
+    <!-- Main Package List Area -->
+    <div id="package-list" class="flex-1 overflow-y-auto p-3 space-y-3 bg-slate-100">
+      <!-- Package Cards loaded dynamically via JS -->
+    </div>
+
+    <!-- Bottom Quick Action Bar / Settlement Modal Trigger -->
+    <div class="bg-white border-t border-gray-200 p-3 flex justify-between items-center shrink-0 z-10 shadow-lg">
+      <button onclick="syncDataWithSheets()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow transition">
+        <i class="fa-solid fa-rotate text-emerald-400" id="sync-icon"></i>
+        <span>Sincronizar</span>
+      </button>
+
+      <button onclick="openCierreModal()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-extrabold flex items-center gap-2 shadow-md transition">
+        <i class="fa-solid fa-file-invoice-dollar"></i>
+        <span>Cierre de Caja</span>
+      </button>
+    </div>
+
+    <!-- ==================== MODAL: LIQUIDAR ENTREGA ==================== -->
+    <div id="modal-entrega" class="hidden fixed inset-0 bg-slate-900/80 z-50 flex items-end justify-center backdrop-blur-xs transition-opacity">
+      <div class="bg-white w-full max-w-md rounded-t-3xl p-5 space-y-4 max-h-[92vh] overflow-y-auto shadow-2xl border-t border-gray-200">
+        
+        <div class="flex justify-between items-center border-b pb-3">
+          <div>
+            <span class="bg-emerald-100 text-emerald-800 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">Paso Final</span>
+            <h3 class="font-black text-lg text-slate-800 mt-0.5">Liquidar Entrega</h3>
+          </div>
+          <button onclick="closeModal('modal-entrega')" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 font-bold flex items-center justify-center text-lg">&times;</button>
+        </div>
+
+        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1">
+          <p class="text-xs font-bold text-slate-700" id="entrega-guia-info">Guía: #G-00000</p>
+          <p class="text-xs text-slate-500" id="entrega-cliente-info">Cliente: Comercial El Centro</p>
+        </div>
+
+        <!-- Cobro COD (Si aplica) -->
+        <div id="cobro-container" class="bg-amber-50 border border-amber-200 p-3.5 rounded-xl flex justify-between items-center">
+          <div>
+            <p class="text-xs font-extrabold text-amber-900 flex items-center gap-1">
+              <i class="fa-solid fa-hand-holding-dollar text-amber-600"></i> COBRO EN DESTINO (COD)
+            </p>
+            <p class="text-[11px] text-amber-700">Solicitar efectivo al cliente antes de entregar</p>
+          </div>
+          <span id="cobro-monto" class="text-lg font-black text-amber-800 bg-amber-200/60 px-2.5 py-1 rounded-lg">L. 0.00</span>
+        </div>
+
+        <!-- Receptor Info -->
+        <div class="space-y-2">
+          <div>
+            <label class="text-xs font-extrabold text-gray-700">Nombre de quien recibe *</label>
+            <input type="text" id="receptor-nombre" placeholder="Ej: Ana María Gómez" 
+                   class="w-full p-2.5 text-xs bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none mt-1">
+          </div>
+          <div>
+            <label class="text-xs font-extrabold text-gray-700">DNI / Identidad (Opcional)</label>
+            <input type="text" id="receptor-dni" placeholder="Ej: 0801-1990-12345" 
+                   class="w-full p-2.5 text-xs bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none mt-1">
+          </div>
+        </div>
+
+        <!-- Firma Digital Canvas -->
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <label class="text-xs font-extrabold text-gray-700">Firma Digital del Cliente *</label>
+            <button type="button" onclick="clearSignature()" class="text-[11px] font-bold text-red-500 hover:underline flex items-center gap-1">
+              <i class="fa-solid fa-eraser"></i> Limpiar firma
+            </button>
+          </div>
+          <div class="relative border-2 border-dashed border-gray-300 rounded-2xl bg-slate-50 overflow-hidden">
+            <canvas id="signature-pad" class="w-full h-32 touch-none cursor-crosshair"></canvas>
+            <span class="absolute bottom-2 right-3 text-[10px] text-gray-400 pointer-events-none">Firme dentro del recuadro</span>
+          </div>
+        </div>
+
+        <!-- Foto de Evidencia -->
+        <div>
+          <label class="text-xs font-extrabold text-gray-700 block mb-1">Foto de Evidencia / Paquete en destino (Opcional)</label>
+          <div class="flex items-center gap-3">
+            <label class="flex-1 py-2.5 px-3 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-xl cursor-pointer text-center text-xs font-bold text-slate-700 flex items-center justify-center gap-2 transition">
+              <i class="fa-solid fa-camera text-slate-500"></i>
+              <span>Tomar / Subir Foto</span>
+              <input type="file" id="foto-entrega-input" accept="image/*" capture="environment" onchange="previewPhoto(event, 'preview-entrega-container')" class="hidden">
+            </label>
+          </div>
+          <div id="preview-entrega-container" class="mt-2 hidden relative rounded-xl overflow-hidden border border-gray-200 max-h-36 bg-black flex items-center justify-center">
+            <!-- Image preview rendered here -->
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="pt-2 flex gap-2">
+          <button type="button" onclick="closeModal('modal-entrega')" class="w-1/3 py-3 bg-gray-100 hover:bg-gray-200 font-bold text-xs text-gray-700 rounded-xl">Cancelar</button>
+          <button type="button" onclick="confirmarEntrega()" class="w-2/3 py-3 bg-emerald-600 hover:bg-emerald-700 font-extrabold text-xs text-white rounded-xl shadow-lg flex items-center justify-center gap-2">
+            <i class="fa-solid fa-circle-check"></i> CONFIRMAR ENTREGA
+          </button>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ==================== MODAL: REGISTRAR INCIDENCIA ==================== -->
+    <div id="modal-incidencia" class="hidden fixed inset-0 bg-slate-900/80 z-50 flex items-end justify-center backdrop-blur-xs">
+      <div class="bg-white w-full max-w-md rounded-t-3xl p-5 space-y-4 max-h-[92vh] overflow-y-auto shadow-2xl border-t border-gray-200">
+        
+        <div class="flex justify-between items-center border-b pb-3">
+          <div>
+            <span class="bg-red-100 text-red-800 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">Reporte de Fallo</span>
+            <h3 class="font-black text-lg text-red-600 mt-0.5">Registrar Incidencia</h3>
+          </div>
+          <button onclick="closeModal('modal-incidencia')" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 font-bold flex items-center justify-center text-lg">&times;</button>
+        </div>
+
+        <p class="text-xs text-gray-600 font-medium">Seleccione el motivo de la no entrega del paquete:</p>
+
+        <!-- Incidents options -->
+        <div class="space-y-2" id="motivos-incidencia">
+          <label class="flex items-center p-3 border rounded-xl cursor-pointer hover:bg-red-50 border-gray-200 transition">
+            <input type="radio" name="motivo" value="Cliente Ausente / Local Cerrado" class="text-red-600 focus:ring-red-500" checked>
+            <span class="ml-3 text-xs font-bold text-gray-700">🚫 Cliente Ausente / Local Cerrado</span>
+          </label>
+          <label class="flex items-center p-3 border rounded-xl cursor-pointer hover:bg-red-50 border-gray-200 transition">
+            <input type="radio" name="motivo" value="Dirección Incorrecta o Incompleta" class="text-red-600 focus:ring-red-500">
+            <span class="ml-3 text-xs font-bold text-gray-700">📍 Dirección Incorrecta o Incompleta</span>
+          </label>
+          <label class="flex items-center p-3 border rounded-xl cursor-pointer hover:bg-red-50 border-gray-200 transition">
+            <input type="radio" name="motivo" value="Cliente No Contesta Teléfono" class="text-red-600 focus:ring-red-500">
+            <span class="ml-3 text-xs font-bold text-gray-700">📞 No Contesta Llamadas</span>
+          </label>
+          <label class="flex items-center p-3 border rounded-xl cursor-pointer hover:bg-red-50 border-gray-200 transition">
+            <input type="radio" name="motivo" value="Cliente Rechaza Paquete" class="text-red-600 focus:ring-red-500">
+            <span class="ml-3 text-xs font-bold text-gray-700">❌ Cliente Rechaza Paquete</span>
+          </label>
+          <label class="flex items-center p-3 border rounded-xl cursor-pointer hover:bg-red-50 border-gray-200 transition">
+            <input type="radio" name="motivo" value="Cliente No Tiene Efectivo COD" class="text-red-600 focus:ring-red-500">
+            <span class="ml-3 text-xs font-bold text-gray-700">💵 Cliente No Tiene Efectivo (COD)</span>
+          </label>
+        </div>
+
+        <!-- Observaciones -->
+        <div>
+          <label class="text-xs font-extrabold text-gray-700">Notas / Detalles adicionales</label>
+          <textarea id="incidencia-notas" rows="2" placeholder="Ej: Portón café cerrado, se llamó 3 veces..." 
+                    class="w-full p-2.5 text-xs bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 outline-none mt-1"></textarea>
+        </div>
+
+        <!-- Foto Evidencia Incidencia -->
+        <div>
+          <label class="text-xs font-extrabold text-gray-700 block mb-1">Foto de Evidencia / Fachada (Obligatoria)</label>
+          <label class="w-full py-2.5 px-3 bg-red-50 hover:bg-red-100 border border-red-200 rounded-xl cursor-pointer text-center text-xs font-bold text-red-700 flex items-center justify-center gap-2 transition">
+            <i class="fa-solid fa-camera"></i>
+            <span>Tomar Foto de Fachada</span>
+            <input type="file" id="foto-incidencia-input" accept="image/*" capture="environment" onchange="previewPhoto(event, 'preview-incidencia-container')" class="hidden">
+          </label>
+          <div id="preview-incidencia-container" class="mt-2 hidden relative rounded-xl overflow-hidden border border-red-200 max-h-36 bg-black flex items-center justify-center">
+            <!-- Image preview rendered here -->
+          </div>
+        </div>
+
+        <div class="pt-2 flex gap-2">
+          <button type="button" onclick="closeModal('modal-incidencia')" class="w-1/3 py-3 bg-gray-100 font-bold text-xs text-gray-700 rounded-xl">Cancelar</button>
+          <button type="button" onclick="confirmarIncidencia()" class="w-2/3 py-3 bg-red-600 hover:bg-red-700 font-extrabold text-xs text-white rounded-xl shadow-lg flex items-center justify-center gap-2">
+            <i class="fa-solid fa-triangle-exclamation"></i> GUARDAR REPORTE
+          </button>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ==================== MODAL: CONFIGURACIÓN GOOGLE SHEETS ==================== -->
+    <div id="modal-config" class="hidden fixed inset-0 bg-slate-900/80 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
+      <div class="bg-white w-full max-w-sm rounded-2xl p-5 space-y-4 shadow-2xl border border-gray-200">
+        
+        <div class="flex justify-between items-center border-b pb-2">
+          <h3 class="font-bold text-base text-slate-800 flex items-center gap-2">
+            <i class="fa-solid fa-file-excel text-emerald-600"></i> Integración Google Sheets
+          </h3>
+          <button onclick="closeModal('modal-config')" class="text-gray-400 hover:text-gray-600 text-lg font-bold">&times;</button>
+        </div>
+
+        <p class="text-xs text-gray-600 leading-relaxed">
+          Pega aquí la URL de tu **Google Apps Script Web App** para sincronizar automáticamente en tiempo real las entregas con tu hoja de cálculo.
+        </p>
+
+        <div>
+          <label class="text-xs font-bold text-gray-700">URL del Web App (Apps Script):</label>
+          <input type="url" id="sheet-url-input" placeholder="https://script.google.com/macros/s/.../exec" 
+                 class="w-full p-2.5 text-xs bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none mt-1 font-mono">
+        </div>
+
+        <div class="bg-blue-50 border border-blue-200 p-2.5 rounded-xl text-[11px] text-blue-800 space-y-1">
+          <p class="font-bold"><i class="fa-solid fa-circle-info"></i> ¿No tienes URL configurada?</p>
+          <p>No te preocupes. La app usará la base de datos simulada local para que puedas probar todo el flujo de trabajo sin inconvenientes.</p>
+        </div>
+
+        <div class="flex gap-2 pt-2">
+          <button onclick="saveSheetConfig()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 font-bold text-xs text-white rounded-xl shadow">
+            Guardar Configuración
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== MODAL: CAMBIAR / SELECCIONAR PILOTO ==================== -->
+    <div id="modal-piloto" class="hidden fixed inset-0 bg-slate-900/80 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
+      <div class="bg-white w-full max-w-sm rounded-2xl p-5 space-y-4 shadow-2xl border border-gray-200">
+        
+        <div class="flex justify-between items-center border-b pb-2">
+          <h3 class="font-bold text-base text-slate-800 flex items-center gap-2">
+            <i class="fa-solid fa-id-card text-emerald-600"></i> Identificación de Piloto
+          </h3>
+          <button onclick="closeModal('modal-piloto')" class="text-gray-400 hover:text-gray-600 text-lg font-bold">&times;</button>
+        </div>
+
+        <p class="text-xs text-gray-600 leading-relaxed">
+          Selecciona tu usuario de piloto. La aplicación mostrará <strong>únicamente</strong> las guías asignadas a tu vehículo/ruta.
+        </p>
+
+        <div>
+          <label class="text-xs font-bold text-gray-700 block mb-1">Seleccionar Piloto:</label>
+          <select id="piloto-select" class="w-full p-2.5 text-xs bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none">
+            <option value="T-01">T-01 | Carlos Mendoza (Ruta 01 - Tegucigalpa)</option>
+            <option value="T-02" selected>T-02 | Mario Rodríguez (Ruta 04 - San Pedro Sula)</option>
+            <option value="T-03">T-03 | José Alvarado (Ruta 02 - La Ceiba)</option>
+          </select>
+        </div>
+
+        <div class="flex gap-2 pt-2">
+          <button onclick="switchPilot()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 font-bold text-xs text-white rounded-xl shadow">
+            Ingresar a la Ruta
+          </button>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ==================== MODAL: CIERRE DE CAJA (LIQUIDACIÓN DIARIA) ==================== -->
+    <div id="modal-cierre" class="hidden fixed inset-0 bg-slate-900/80 z-50 flex items-end justify-center backdrop-blur-xs">
+      <div class="bg-white w-full max-w-md rounded-t-3xl p-5 space-y-4 max-h-[92vh] overflow-y-auto shadow-2xl border-t border-gray-200">
+        
+        <div class="flex justify-between items-center border-b pb-3">
+          <div>
+            <span class="bg-amber-100 text-amber-900 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">Resumen de Liquidación</span>
+            <h3 class="font-black text-lg text-slate-800 mt-0.5">Cierre de Caja del Día</h3>
+          </div>
+          <button onclick="closeModal('modal-cierre')" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 font-bold flex items-center justify-center text-lg">&times;</button>
+        </div>
+
+        <!-- Drivers Summary Grid -->
+        <div class="grid grid-cols-2 gap-2 text-center text-xs">
+          <div class="bg-emerald-50 border border-emerald-200 p-3 rounded-2xl">
+            <span class="text-emerald-700 font-medium block">Entregados</span>
+            <span id="cierre-entregados" class="text-xl font-black text-emerald-800">0</span>
+          </div>
+          <div class="bg-red-50 border border-red-200 p-3 rounded-2xl">
+            <span class="text-red-700 font-medium block">No Entregados</span>
+            <span id="cierre-incidencias" class="text-xl font-black text-red-800">0</span>
+          </div>
+        </div>
+
+        <!-- Cash collection detail breakdown -->
+        <div class="bg-slate-900 text-white p-4 rounded-2xl space-y-3">
+          <div class="flex justify-between items-center text-xs text-slate-300">
+            <span>Total Guías en Ruta:</span>
+            <span id="cierre-total-guias" class="font-bold text-white">0</span>
+          </div>
+          <div class="flex justify-between items-center text-xs text-slate-300">
+            <span>Cobros COD Realizados:</span>
+            <span id="cierre-cod-count" class="font-bold text-amber-400">0</span>
+          </div>
+          <div class="pt-2 border-t border-slate-800 flex justify-between items-center">
+            <div>
+              <span class="text-xs font-bold text-amber-400 block">Efectivo Total a Entregar</span>
+              <span class="text-[10px] text-slate-400">En Bodega al finalizar turno</span>
+            </div>
+            <span id="cierre-total-dinero" class="text-xl font-black text-amber-400">L. 0.00</span>
+          </div>
+        </div>
+
+        <button onclick="closeModal('modal-cierre')" class="w-full py-3 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl shadow">
+          Aceptar y Volver a la Ruta
+        </button>
+      </div>
+    </div>
+
+    <!-- Notification Toast System -->
+    <div id="toast-notification" class="hidden fixed bottom-16 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-xs font-semibold px-4 py-2.5 rounded-full shadow-2xl border border-slate-700 z-50 flex items-center gap-2 transition-all">
+      <i class="fa-solid fa-circle-info text-emerald-400" id="toast-icon"></i>
+      <span id="toast-message">Mensaje de notificación</span>
+    </div>
+
+  </div>
+
+  <script>
+    // State management
+    let googleSheetUrl = localStorage.getItem('googleSheetUrl') || '';
+    let selectedPackageId = null;
+    let filterMode = 'todos';
+    let searchQuery = '';
+
+    // Active Driver Profile
+    let currentPilotId = localStorage.getItem('currentPilotId') || 'T-02';
+
+    const driversList = {
+      'T-01': { nombre: 'Carlos Mendoza', badge: 'T-01', ruta: 'RUTA 01 - TEGUCIGALPA', zona: 'Tegucigalpa Centro' },
+      'T-02': { nombre: 'Mario Rodríguez', badge: 'T-02', ruta: 'RUTA 04 - SAN PEDRO', zona: 'San Pedro Sula' },
+      'T-03': { nombre: 'José Alvarado', badge: 'T-03', ruta: 'RUTA 02 - LA CEIBA', zona: 'La Ceiba' }
+    };
+
+    // Initial mock data with assigned pilot IDs
+    let packages = [
+      {
+        id: "G-88495",
+        pilotoId: "T-02",
+        cliente: "Comercial El Centro",
+        direccion: "Barrio Guamilito, 5 Calle 8 Ave, frente a Farmacia Simán",
+        telefono: "99887766",
+        monto: 450,
+        estado: "pendiente",
+        observaciones: "Preguntar por Ing. Roberto",
+        receptor: "",
+        dni: "",
+        motivo: "",
+        foto: null
+      },
+      {
+        id: "G-88496",
+        pilotoId: "T-02",
+        cliente: "Importadora X",
+        direccion: "Colonia Trejo, 21 Ave 11 Calle, Casa 204",
+        telefono: "88776655",
+        monto: 0,
+        estado: "pendiente",
+        observaciones: "Entregar en garita de seguridad",
+        receptor: "",
+        dni: "",
+        motivo: "",
+        foto: null
+      },
+      {
+        id: "G-88497",
+        pilotoId: "T-01",
+        cliente: "Banco Central - Agencia Norte",
+        direccion: "Bo. El Benque, Frente a Plaza Central",
+        telefono: "22334455",
+        monto: 1200,
+        estado: "pendiente",
+        observaciones: "Cobrar factura en contabilidad",
+        receptor: "",
+        dni: "",
+        motivo: "",
+        foto: null
+      },
+      {
+        id: "G-88498",
+        pilotoId: "T-02",
+        cliente: "Farmacia La Salud",
+        direccion: "Barrio Concepción, 1 Calle 3 Ave",
+        telefono: "33445566",
+        monto: 0,
+        estado: "pendiente",
+        observaciones: "Recibe Licda. Claudia",
+        receptor: "",
+        dni: "",
+        motivo: "",
+        foto: null
+      },
+      {
+        id: "G-88499",
+        pilotoId: "T-03",
+        cliente: "Tienda El Encanto",
+        direccion: "Av. San Isidro, Calle 4, La Ceiba",
+        telefono: "44556677",
+        monto: 800,
+        estado: "pendiente",
+        observaciones: "Entregar por la tarde",
+        receptor: "",
+        dni: "",
+        motivo: "",
+        foto: null
+      }
+    ];
+
+    // Load persisted state if exists
+    if (localStorage.getItem('packagesData')) {
+      try {
+        packages = JSON.parse(localStorage.getItem('packagesData'));
+      } catch(e) { console.error("Error reading saved packages", e); }
+    }
+
+    // App Startup
+    window.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('date-display').innerText = new Date().toLocaleDateString('es-HN', { weekday: 'short', day: 'numeric', month: 'short' });
+      if (googleSheetUrl) {
+        document.getElementById('sheet-url-input').value = googleSheetUrl;
+        document.getElementById('sync-badge-text').innerText = 'Sheet Activo';
+      }
+      updateDriverUI();
+      renderList();
+      initSignatureCanvas();
+    });
+
+    function updateDriverUI() {
+      const driver = driversList[currentPilotId] || driversList['T-02'];
+      document.getElementById('driver-name-display').innerText = driver.nombre;
+      document.getElementById('driver-badge-display').innerText = driver.badge;
+      document.getElementById('driver-route-display').innerText = `Piloto Asignado | ${driver.zona}`;
+      document.getElementById('route-title').innerText = driver.ruta;
+      document.getElementById('piloto-select').value = currentPilotId;
+    }
+
+    function openPilotoModal() {
+      document.getElementById('modal-piloto').classList.remove('hidden');
+    }
+
+    function switchPilot() {
+      currentPilotId = document.getElementById('piloto-select').value;
+      localStorage.setItem('currentPilotId', currentPilotId);
+      closeModal('modal-piloto');
+      updateDriverUI();
+      renderList();
+      showToast(`Cambiado a piloto ${driversList[currentPilotId].nombre}`);
+    }
+
+    function saveState() {
+      localStorage.setItem('packagesData', JSON.stringify(packages));
+    }
+
+    function renderList() {
+      const container = document.getElementById('package-list');
+      container.innerHTML = '';
+
+      // CRITICAL PRIVACY/SECURITY FILTER: Only show packages assigned to active pilot
+      let pilotPackages = packages.filter(p => p.pilotoId === currentPilotId);
+      let filtered = pilotPackages;
+
+      // Filter by state
+      if (filterMode === 'pendiente') filtered = filtered.filter(p => p.estado === 'pendiente');
+      if (filterMode === 'entregado') filtered = filtered.filter(p => p.estado === 'entregado');
+      if (filterMode === 'incidencia') filtered = filtered.filter(p => p.estado === 'incidencia');
+
+      // Filter by search query
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        filtered = filtered.filter(p => 
+          p.id.toLowerCase().includes(q) || 
+          p.cliente.toLowerCase().includes(q) || 
+          p.direccion.toLowerCase().includes(q)
+        );
+      }
+
+      // Update counters based ONLY on active pilot's packages
+      document.getElementById('count-todos').innerText = pilotPackages.length;
+      document.getElementById('count-pendiente').innerText = pilotPackages.filter(p => p.estado === 'pendiente').length;
+      document.getElementById('count-entregado').innerText = pilotPackages.filter(p => p.estado === 'entregado').length;
+      document.getElementById('count-incidencia').innerText = pilotPackages.filter(p => p.estado === 'incidencia').length;
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-12 text-gray-400 space-y-2">
+            <i class="fa-solid fa-box-open text-3xl"></i>
+            <p class="text-xs font-semibold">No tienes entregas asignadas en esta vista.</p>
+          </div>`;
+      }
+
+      filtered.forEach((p) => {
+        const isEntregado = p.estado === 'entregado';
+        const isIncidencia = p.estado === 'incidencia';
+
+        let badge = '<span class="bg-amber-100 text-amber-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-amber-200">Pendiente</span>';
+        if (isEntregado) badge = '<span class="bg-emerald-100 text-emerald-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-emerald-200">🟢 Entregado</span>';
+        if (isIncidencia) badge = '<span class="bg-red-100 text-red-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-red-200">🔴 No Entregado</span>';
+
+        const card = document.createElement('div');
+        card.className = "bg-white p-4 rounded-2xl shadow-sm border border-gray-200/80 space-y-3 transition hover:shadow-md";
+        
+        // Encode address and phone for external map/call triggers
+        const encodedAddress = encodeURIComponent(p.direccion + ", San Pedro Sula");
+        const cleanPhone = p.telefono.replace(/\D/g,'');
+
+        card.innerHTML = `
+          <div class="flex justify-between items-start">
+            <div>
+              <span class="text-xs font-black text-blue-600 tracking-wider">#${p.id}</span>
+              <h4 class="font-bold text-sm text-slate-800 leading-tight">${p.cliente}</h4>
+            </div>
+            ${badge}
+          </div>
+
+          <p class="text-xs text-slate-600 flex items-start gap-1.5 leading-relaxed">
+            <i class="fa-solid fa-location-dot text-red-500 mt-0.5 shrink-0"></i>
+            <span>${p.direccion}</span>
+          </p>
+
+          ${p.observaciones ? `
+            <p class="text-[11px] text-slate-500 bg-slate-50 p-2 rounded-lg border border-slate-200/60 flex items-center gap-1.5">
+              <i class="fa-solid fa-note-sticky text-amber-500"></i>
+              <span>${p.observaciones}</span>
+            </p>
+          ` : ''}
+
+          <div class="flex justify-between items-center pt-1 text-xs">
+            ${p.monto > 0 ? `
+              <span class="font-extrabold text-amber-800 bg-amber-100/80 px-2.5 py-1 rounded-lg border border-amber-200 flex items-center gap-1">
+                <i class="fa-solid fa-money-bill-wave"></i> COD: L. ${p.monto}.00
+              </span>
+            ` : '<span class="text-[11px] text-gray-400 font-semibold">Pagado en Origen</span>'}
+
+            <div class="flex gap-2">
+              <a href="tel:${cleanPhone}" class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 flex items-center justify-center font-bold" title="Llamar">
+                <i class="fa-solid fa-phone text-xs"></i>
+              </a>
+              <a href="https://wa.me/504${cleanPhone}" target="_blank" class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 hover:bg-emerald-100 flex items-center justify-center font-bold" title="WhatsApp">
+                <i class="fa-brands fa-whatsapp text-sm"></i>
+              </a>
+              <a href="https://waze.com/ul?q=${encodedAddress}" target="_blank" class="w-8 h-8 rounded-full bg-sky-50 text-sky-600 hover:bg-sky-100 flex items-center justify-center font-bold" title="Navegar Waze">
+                <i class="fa-solid fa-location-arrow text-xs"></i>
+              </a>
+            </div>
+          </div>
+
+          ${isIncidencia ? `
+            <div class="text-xs bg-red-50 text-red-700 p-2 rounded-xl border border-red-200/70 font-medium">
+              <strong>Motivo fallo:</strong> ${p.motivo}
+            </div>
+          ` : ''}
+
+          ${isEntregado ? `
+            <div class="text-xs bg-emerald-50 text-emerald-800 p-2 rounded-xl border border-emerald-200/70 font-medium flex justify-between items-center">
+              <span>Recibió: <strong>${p.receptor}</strong></span>
+              <i class="fa-solid fa-signature text-emerald-600"></i>
+            </div>
+          ` : ''}
+
+          <!-- Driver Action Buttons -->
+          ${p.estado === 'pendiente' ? `
+            <div class="pt-2 flex gap-2 border-t border-gray-100">
+              <button onclick="openIncidencia('${p.id}')" class="w-1/3 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs rounded-xl transition flex items-center justify-center gap-1">
+                <i class="fa-solid fa-xmark"></i> Incidencia
+              </button>
+              <button onclick="openEntrega('${p.id}')" class="w-2/3 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl transition shadow flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-check"></i> ENTREGAR
+              </button>
+            </div>
+          ` : ''}
+        `;
+        container.appendChild(card);
+      });
+
+      updateMetrics();
+    }
+
+    function updateMetrics() {
+      const pilotPackages = packages.filter(p => p.pilotoId === currentPilotId);
+      const completed = pilotPackages.filter(p => p.estado !== 'pendiente').length;
+      const total = pilotPackages.length;
+      const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+      document.getElementById('progress-text').innerText = `${completed} / ${total} (${percentage}%)`;
+      document.getElementById('progress-bar').style.width = `${percentage}%`;
+
+      // Calculate total COD cash collected from successfully delivered packages for THIS pilot
+      const codTotal = pilotPackages
+        .filter(p => p.estado === 'entregado')
+        .reduce((sum, p) => sum + (p.monto || 0), 0);
+
+      document.getElementById('total-cod-collected').innerText = `L. ${codTotal.toLocaleString('es-HN')}.00`;
+    }
+
+    function openCierreModal() {
+      const pilotPackages = packages.filter(p => p.pilotoId === currentPilotId);
+      const totalGuias = pilotPackages.length;
+      const entregados = pilotPackages.filter(p => p.estado === 'entregado').length;
+      const incidencias = pilotPackages.filter(p => p.estado === 'incidencia').length;
+      
+      const codPackages = pilotPackages.filter(p => p.estado === 'entregado' && p.monto > 0);
+      const totalDinero = codPackages.reduce((acc, p) => acc + p.monto, 0);
+
+      document.getElementById('cierre-total-guias').innerText = totalGuias;
+      document.getElementById('cierre-entregados').innerText = entregados;
+      document.getElementById('cierre-incidencias').innerText = incidencias;
+      document.getElementById('cierre-cod-count').innerText = codPackages.length;
+      document.getElementById('cierre-total-dinero').innerText = `L. ${totalDinero.toLocaleString('es-HN')}.00`;
+
+      document.getElementById('modal-cierre').classList.remove('hidden');
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.add('hidden');
+    }
+
+    function confirmarEntrega() {
+      const pkg = packages.find(p => p.id === selectedPackageId);
+      const receptor = document.getElementById('receptor-nombre').value.trim();
+      const dni = document.getElementById('receptor-dni').value.trim();
+
+      if (!receptor) {
+        showToast("Por favor ingrese el nombre de quien recibe.", "fa-circle-exclamation");
+        return;
+      }
+
+      pkg.estado = 'entregado';
+      pkg.receptor = receptor;
+      pkg.dni = dni;
+
+      saveState();
+      closeModal('modal-entrega');
+      document.getElementById('receptor-nombre').value = '';
+      document.getElementById('receptor-dni').value = '';
+      clearSignature();
+
+      renderList();
+      showToast(`Entrega de guía #${pkg.id} finalizada exitosamente.`);
+
+      // Sync to sheet if URL configured
+      if (googleSheetUrl) syncDataWithSheets();
+    }
+
+    function confirmarIncidencia() {
+      const pkg = packages.find(p => p.id === selectedPackageId);
+      const motivo = document.querySelector('input[name="motivo"]:checked').value;
+      const notas = document.getElementById('incidencia-notas').value.trim();
+
+      pkg.estado = 'incidencia';
+      pkg.motivo = notas ? `${motivo} (${notas})` : motivo;
+
+      saveState();
+      closeModal('modal-incidencia');
+      document.getElementById('incidencia-notas').value = '';
+
+      renderList();
+      showToast(`Incidencia registrada para guía #${pkg.id}`, "fa-triangle-exclamation");
+
+      // Sync to sheet if URL configured
+      if (googleSheetUrl) syncDataWithSheets();
+    }
+
+    function saveSheetConfig() {
+      const url = document.getElementById('sheet-url-input').value.trim();
+      googleSheetUrl = url;
+      localStorage.setItem('googleSheetUrl', url);
+      closeModal('modal-config');
+
+      if (url) {
+        document.getElementById('sync-badge-text').innerText = 'Sheet Activo';
+        showToast("Configuración de Google Sheet guardada");
+        syncDataWithSheets();
+      } else {
+        document.getElementById('sync-badge-text').innerText = 'Sheet';
+        showToast("Modo local activado");
+      }
+    }
+
+    async function syncDataWithSheets() {
+      const syncIcon = document.getElementById('sync-icon');
+      syncIcon.classList.add('animate-spin');
+
+      if (!googleSheetUrl) {
+        setTimeout(() => {
+          syncIcon.classList.remove('animate-spin');
+          showToast("Modo Local: Datos guardados en teléfono.");
+        }, 600);
+        return;
+      }
+
+      try {
+        const response = await fetch(googleSheetUrl, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'sync_driver', packages: packages })
+        });
+
+        syncIcon.classList.remove('animate-spin');
+        showToast("Sincronizado exitosamente con Google Sheets");
+      } catch (err) {
+        syncIcon.classList.remove('animate-spin');
+        showToast("Error al sincronizar con Google Sheets", "fa-triangle-exclamation");
+      }
+    }
+
+    function showToast(message, icon = "fa-circle-check") {
+      const toast = document.getElementById('toast-notification');
+      document.getElementById('toast-message').innerText = message;
+      document.getElementById('toast-icon').className = `fa-solid ${icon} text-emerald-400`;
+
+      toast.classList.remove('hidden');
+      setTimeout(() => {
+        toast.classList.add('hidden');
+      }, 3000);
+    }
+  </script>
+</body>
+</html>
